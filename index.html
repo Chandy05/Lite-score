@@ -3,25 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- ส่วนนี้คือ Meta Tag ที่ทำให้เว็บกลายเป็น App (ซ่อนแถบต่างๆ ของ Safari) เมื่อแอดลงหน้าจอโฮม -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Chandy Calc">
+    
     <title>Chandy Calculator</title>
     <style>
         body { 
             margin: 0; padding: 0; 
-            background: rgba(13, 27, 42, 0.95); 
+            background: rgba(13, 27, 42, 1); 
             font-family: 'Courier New', Courier, monospace; 
             height: 100vh;
-            /* แก้ให้จัดเรียงจากบนลงล่าง ป้องกันคีย์บอร์ดบัง */
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: flex-start; /* เริ่มจากบนสุด */
+            justify-content: flex-start; 
             overflow: hidden; 
+            /* ป้องกันการเด้งหรือการเลื่อนหน้าจอที่ไม่ได้ตั้งใจใน iOS */
+            overscroll-behavior-y: none;
         }
         
-        /* กล่องบน: แสดงผลลัพธ์ใหญ่ๆ (ให้อยู่บนสุดเสมอ) */
+        /* กล่องบน: แสดงผลลัพธ์ใหญ่ๆ */
         .preview-container {
             width: 100%;
-            height: 45vh; /* บังคับความสูงให้ตายตัว */
+            height: 50vh; /* ขยายพื้นที่โชว์ผลลัพธ์ให้กว้างขึ้น */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -30,26 +37,32 @@
         }
 
         #previewText { 
-            font-size: clamp(30px, 12vw, 150px); /* ปรับขนาดออโต้ไม่ให้ล้นจอ */
+            /* จัดเรียงเป็นแนวตั้ง (Column) เพื่อให้ลูกระเบิดเรียงลงมาทีละบรรทัด */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px; /* ระยะห่างระหว่างลูก */
+            
+            font-size: clamp(30px, 10vw, 100px); /* ปรับขนาดฟอนต์ลงนิดหน่อยให้จุได้หลายบรรทัด */
             font-weight: 900; 
-            line-height: 1.2; 
+            line-height: 1; 
             text-align: center; 
-            word-break: break-word;
             margin: 0;
             padding: 0;
+            width: 100%;
         }
 
         /* ตกแต่งสีสันพิเศษ */
         .color-hit { color: #00ff00; text-shadow: 0 0 25px rgba(0,255,0,0.8); }
         .color-miss { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.8); }
         .color-score { color: #00e5ff; text-shadow: 0 0 25px rgba(0, 229, 255, 0.8); }
-        .plus-sign { color: #fff; margin: 0 10px; opacity: 0.5; font-size: 0.8em; }
 
-        /* กล่องล่าง: สำหรับพิมพ์ค่า (ให้อยู่ถัดลงมา) */
+        /* กล่องล่าง: สำหรับพิมพ์ค่า */
         .input-container {
             width: 95%;
             max-width: 800px;
-            margin-top: 2vh; /* ดันลงมาจากจอแสดงผลลัพธ์เล็กน้อย */
+            margin-top: 2vh; 
         }
 
         .input-wrapper { 
@@ -63,8 +76,8 @@
         }
 
         #rapidInput { 
-            font-size: clamp(30px, 8vw, 60px);
-            height: 12vh; /* ปรับให้สูงขึ้นนิดนึงพิมพ์ง่าย */
+            font-size: clamp(28px, 7vw, 60px);
+            height: 10vh; 
             min-height: 60px;
             width: 100%; 
             text-align: center; 
@@ -80,15 +93,15 @@
 </head>
 <body>
 
-    <!-- กล่องโชว์ผลลัพธ์ยักษ์ (จัดให้อยู่ด้านบน) -->
+    <!-- กล่องโชว์ผลลัพธ์ (จัดให้อยู่ด้านบน) -->
     <div class="preview-container">
         <div id="previewText"></div>
     </div>
 
-    <!-- กล่องพิมพ์ข้อมูล (จัดให้อยู่ตรงกลางบน) -->
+    <!-- กล่องพิมพ์ข้อมูล (จัดให้อยู่ถัดลงมา) -->
     <div class="input-container">
         <div class="input-wrapper">
-            <input type="text" id="rapidInput" autocomplete="off" autofocus>
+            <input type="text" id="rapidInput" autocomplete="off" autofocus autocorrect="off" autocapitalize="off" spellcheck="false">
         </div>
     </div>
 
@@ -153,7 +166,7 @@
         return "?";
     }
 
-    // 4. ระบบจับคู่การพิมพ์ (ลอกมาจากระบบหลักเป๊ะๆ)
+    // 4. ระบบจับคู่การพิมพ์
     function parseInputString(str) {
         let d = [], iM = false;
         let separatorRegex = /\s*\|\s*/;
@@ -225,18 +238,17 @@
             return; 
         }
 
-        // โยนเข้าสมองกลตัวเต็ม (ตัวเดียวกับระบบหลัก)
         let R = parseInputString(rV);
 
         if (R.parsedDrops.length > 0) {
-            // นำผลลัพธ์มาจัดเรียงสีสัน
+            // สร้างเป็นบล็อก <div> เรียงลงมาเป็นแนวตั้ง
             let visualResult = R.parsedDrops.map(x => {
                 let p = x.parsed;
-                if(p.includes('HIT')) return '<span class="color-hit">HIT</span>';
-                if(p.includes('N/S')) return '<span class="color-miss">N/S</span>';
-                if(p.includes('OUT')) return p.replace(/OUT\/\d*/g, '<span class="color-miss">$&</span>');
-                return `<span class="color-score">${p}</span>`;
-            }).join(' <span class="plus-sign">|</span> ');
+                if(p.includes('HIT')) return '<div class="color-hit">HIT</div>';
+                if(p.includes('N/S')) return '<div class="color-miss">N/S</div>';
+                if(p.includes('OUT')) return `<div class="color-miss">${p}</div>`;
+                return `<div class="color-score">${p}</div>`;
+            }).join('');
             
             preview.innerHTML = visualResult;
         } else {
