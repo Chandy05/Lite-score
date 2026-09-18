@@ -2,311 +2,255 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHANDY WEAPON SCORE - RAPID CALCULATOR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chandy Calculator</title>
     <style>
-        /* ตั้งค่าพื้นหลังและจัดวาง Layout แบบ Fullscreen ตามภาพ */
-        body {
-            margin: 0; padding: 0;
-            background: linear-gradient(135deg, #152238 0%, #1e2a3b 100%);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+        body { 
+            margin: 0; padding: 0; 
+            background: rgba(13, 27, 42, 0.95); 
+            font-family: 'Courier New', Courier, monospace; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            overflow: hidden; 
         }
-
-        .container {
+        
+        /* กล่องบน: แสดงผลลัพธ์ใหญ่ๆ */
+        .preview-container {
+            flex: 1;
             width: 100%;
-            height: 100%;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            position: relative;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-/* ตัวเลขผลลัพธ์สีฟ้าใหญ่ๆ (ปรับให้ยืดหยุ่น ย่อ/ตัดบรรทัดได้) */
-        #previewText {
-            font-weight: 900;
-            color: #00e5ff;
-            text-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
-            line-height: 1.1;
-            margin-bottom: 2vh; 
-            text-align: center;
-            width: 95%; /* ป้องกันไม่ให้ทะลุขอบจอซ้ายขวา */
-            word-wrap: break-word; /* ถ้าจอยาวไม่พอ ให้ตัดขึ้นบรรทัดใหม่ */
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-            min-height: 35vh;
-            transition: font-size 0.1s ease-in-out; /* ให้ตอนย่อฟอนต์ดูสมูท */
+        #previewText { 
+            font-size: clamp(30px, 12vw, 150px); /* ปรับขนาดออโต้ไม่ให้ล้นจอ */
+            font-weight: 900; 
+            line-height: 1.3; 
+            text-align: center; 
+            word-break: break-word;
         }
 
-        /* กล่องสีขาวขอบฟ้าสำหรับพิมพ์ */
-        .input-wrapper {
-            background: #fff;
-            padding: 15px 30px;
-            border-radius: 12px;
-            border: 8px solid #00e5ff;
-            box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
-            width: 80%;
-            max-width: 900px;
-            position: absolute;
-            bottom: 8vh;
-            left: 50%;
-            transform: translateX(-50%);
+        /* ตกแต่งสีสันพิเศษ */
+        .color-hit { color: #00ff00; text-shadow: 0 0 25px rgba(0,255,0,0.8); }
+        .color-miss { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.8); }
+        .color-score { color: #00e5ff; text-shadow: 0 0 25px rgba(0, 229, 255, 0.8); }
+        .plus-sign { color: #fff; margin: 0 15px; opacity: 0.5; font-size: 0.8em; }
+
+        /* กล่องล่าง: สำหรับพิมพ์ค่า */
+        .input-container {
+            width: 95%;
+            max-width: 800px;
+            margin-bottom: 5vh; 
         }
 
-        /* ช่อง Input ภายในกล่องขาว */
-        #rapidInput {
-            width: 100%;
-            font-size: 80px;
-            text-align: center;
-            font-weight: bold;
-            border: none;
-            outline: none;
-            background: transparent;
-            color: #000;
-            font-family: 'Courier New', monospace;
-            text-transform: uppercase;
+        .input-wrapper { 
+            background: #fff; 
+            padding: 10px; 
+            border-radius: 12px; 
+            border: 6px solid #00e5ff; 
+            width: 100%; 
+            box-sizing: border-box; 
+            box-shadow: 0 0 20px rgba(0,229,255,0.6); 
         }
 
-        /* สีเครื่องหมายบวก */
-        .plus-sign {
-            color: #ff1744;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        #rapidInput { 
+            font-size: clamp(30px, 8vw, 60px);
+            height: 10vh; 
+            min-height: 60px;
+            width: 100%; 
+            text-align: center; 
+            font-weight: bold; 
+            border: none; 
+            outline: none; 
+            background: transparent; 
+            color: #000; 
+            text-transform: uppercase; 
+            font-family: 'Courier New', Courier, monospace; 
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- จุดแสดงตัวเลขผลลัพธ์ -->
+    <!-- กล่องโชว์ผลลัพธ์ยักษ์ -->
+    <div class="preview-container">
         <div id="previewText"></div>
-        
-        <!-- กล่องพิมพ์ข้อมูล -->
+    </div>
+
+    <!-- กล่องพิมพ์ข้อมูล -->
+    <div class="input-container">
         <div class="input-wrapper">
-            <input type="text" id="rapidInput" placeholder="" autocomplete="off" autofocus>
+            <input type="text" id="rapidInput" autocomplete="off" autofocus>
         </div>
     </div>
 
-    <script>
-        // 1. ฐานข้อมูลตารางคะแนน (ย่อมาจากไฟล์หลัก)
-        const rawCSV = {
+<script>
+    // 1. ฐานข้อมูลตารางคำนวณ (Core Engine)
+    const rawCSV = {
         "ขข": `0.0,0.0,5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,85.0\n,HIT,10 2,30/2,45/2,60/2,70/2,85/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,210/2,230/2,\n5.0,10 5,15 3,35/2,45/2,60/2,70/2,85/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,210/2,230/2,\n10.0,25 5,30 4,40/3,50/3,65/2,75/2,90/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,210/2,230/2,\n15.0,45/5,45/4,50/3,60/3,70/3,80/3,95/2,105/2,120/2,130/2,145/2,160/2,170/2,185/2,200/2,210/2,230/2,\n20.0,55/5,55/4,65/4,70/3,80/3,90/3,100/3,110/3,125/2,135/2,150/2,160/2,175/2,190/2,205/2,215/2,230/2,\n25.0,75/5,75/4,80/4,85/3,90/3,100/2,110/3,120/3,130/3,145/3,155/2,165/2,180/2,195/2,205/2,215/2,235/2,\n30.0,85/5,85/4,90/4,95/3,105/3,110/3,120/3,130/3,140/3,150/3,160/3,170/3,185/2,195/2,210/2,220/2,235/2,\n35.0,100/5,100/4,105/4,110/4,115/4,120/3,130/3,140/3,150/3,160/3,170/3,180/3,190/3,205/3,215/2,230/2,240/2,\n40.0,115/5,115/4,120/4,120/4,130/4,135/4,140/3,150/3,155/3,165/3,180/3,190/3,200/3,210/3,220/3,235/3,245/2,\n45.0,130/5,130/4,135/4,135/4,140/4,145/4,150/4,160/3,170/3,180/3,190/3,200/3,210/3,220/3,230/3,240/3,250/3,\n50.0,140/5,145/4,145/4,150/4,155/4,155/4,165/4,170/3,180/3,190/3,200/3,210/3,215/3,230/3,240/3,250/3,260/3,\n55.0,155/5,160/4,160/4,165/4,165/4,170/4,180/4,185/4,195/3,200/3,210/3,220/3,230/3,235/3,250/3,255/3,270/3,\n60.0,170/5,170/4,175/4,180/4,185/4,185/4,195/4,200/4,205/4,210/3,220/3,230/3,240/3,245/3,255/3,265/3,275/3,\n65.0,190/5,190/4,190/4,195/4,195/4,200/4,205/4,210/4,220/4,225/3,235/3,240/3,250/3,255/3,265/3,275/3,290/3,\n70.0,200/5,200/4,205/4,210/4,215/4,215/4,220/4,225/4,235/4,240/4,250/3,255/3,260/3,265/3,270/3,285/3,300/3,\n75.0,220/5,220/4,220/4,225/4,230/4,230/4,235/4,240/4,245/4,250/4,260/4,265/4,275/3,280/3,290/3,300/3,315/3,\n80.0,230/5,230/4,235/4,235/4,240/4,240/4,245/4,250/4,255/4,260/4,270/4,275/4,280/3,290/3,300/3,310/3,,\n85.0,250/5,250/4,250/4,255/4,255/4,255/4,260/4,265/4,270/4,275/4,285/4,200/4,300/4,305/3,310/3,320/3,`,
         "ขซ": `0.0,0.0,5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,85.0\n,HIT,10 8,25 8,40/8,50/8,65/8,80/8,95/8,110/8,120/8,135/8,150/8,160/8,180/8,190/8,210/8,220/8,\n5.0,10 5,15 6,30 6,45/7,55/7,70/7,80/7,95/7,110/7,120/7,135/7,150/7,160/7,180/7,190/7,210/7,220/7,\n10.0,25 5,30 6,35/6,50/6,55/7,75/7,85/7,105/7,110/7,125/7,140/7,155/7,165/7,180/7,195/7,210/7,225/7,\n15.0,45/5,45/5,50/6,60/6,70/6,80/6,90/7,105/7,115/7,130/7,140/7,155/7,165/7,185/7,195/7,210/7,225/7,\n20.0,55/5,55/5,60/5,70/6,75/6,85/6,100/6,110/7,120/7,135/7,145/7,160/7,170/7,185/7,195/7,215/7,225/7,\n25.0,75/5,75/5,80/5,85/6,90/6,95/6,105/6,120/6,130/6,140/7,150/7,165/7,175/7,190/7,200/7,215/7,230/7,\n30.0,85/5,85/5,90/5,95/5,100/5,110/6,115/6,125/6,135/6,145/6,155/6,170/7,180/7,195/7,205/7,220/7,235/7,\n35.0,100/5,105/5,105/5,110/5,115/5,120/6,125/6,135/6,145/6,155/6,165/6,180/6,190/6,200/7,210/7,225/7,235/7,\n40.0,115/5,115/5,115/5,120/5,125/5,130/6,135/6,145/6,155/6,165/6,170/6,185/6,195/6,210/6,215/7,235/7,240/7,\n45.0,130/5,130/5,130/5,135/5,140/5,145/5,150/6,160/6,165/6,175/6,185/6,195/6,205/6,215/6,225/6,240/6,250/6,\n50.0,145/5,145/5,145/5,145/5,150/5,155/5,160/6,165/6,175/6,185/6,195/6,205/6,210/6,220/6,230/6,245/6,255/6,\n55.0,155/5,155/5,160/5,160/5,165/5,170/5,175/5,180/6,190/6,195/6,205/6,215/6,220/6,230/6,240/6,250/6,260/6,\n60.0,170/5,170/5,170/5,175/5,180/5,185/5,185/5,195/6,200/6,205/6,215/6,220/6,230/6,240/6,250/6,260/6,270/6,\n65.0,190/5,190/5,190/5,190/5,195/5,195/5,200/5,205/5,215/6,220/6,225/6,235/6,240/6,250/6,260/6,270/6,275/6,\n70.0,200/5,200/5,205/5,205/5,205/5,210/5,215/5,220/5,225/5,230/6,235/6,245/6,250/6,260/6,265/6,275/6,285/6,\n75.0,215/5,215/5,215/5,200/5,200/5,225/5,230/5,235/5,240/5,245/6,250/6,255/6,260/6,270/6,275/6,285/6,295/6,\n80.0,230/5,230/5,230/5,230/5,235/5,235/5,240/5,245/5,250/5,255/5,260/6,265/6,270/6,280/6,285/6,295/6,305/6,\n85.0,245/5,245/5,245/5,250/5,250/5,255/5,255/5,260/5,260/5,265/5,270/6,280/6,285/6,290/6,300/6,305/6,310/6,\n90.0,260/5,260/5,260/5,260/5,260/5,265/5,265/5,270/5,275/5,280/5,285/5,290/6,295/6,300/6,310/6,315/6,320/6`,
         "ซซ": `0.0,0.0,5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,85.0\n,HIT,10 8,25 8,40/8,50/8,65/8,80/8,95/8,110/8,120/8,135/8,150/8,160/8,180/8,190/8,210/8,220/8,\n5.0,10 11,15 9,30 9,45/8,55/8,70/8,80/8,95/8,110/8,125/8,135/8,150/8,160/8,180/8,190/8,210/8,220/8,\n10.0,25 11,30 10,35/9,50/9,55/8,70/8,85/8,100/8,110/8,125/8,140/8,155/8,165/8,180/8,195/8,210/8,220/8,\n15.0,45/11,45/10,50/9,55/9,65/9,80/9,90/8,105/8,115/8,130/8,140/8,155/8,165/8,185/8,195/8,215/8,225/8,\n20.0,55/11,55/10,60/10,70/9,75/9,85/9,100/9,110/9,120/8,135/8,145/8,160/8,170/8,190/8,200/8,215/8,230/8,\n25.0,70/11,75/10,75/10,80/10,85/9,95/9,105/9,120/9,130/9,140/8,150/8,165/8,180/8,195/9,205/8,220/8,235/8,\n30.0,85/11,85/10,85/10,95/10,100/9,110/9,115/9,125/9,135/9,150/9,160/9,170/8,185/8,200/8,210/8,230/8,235/8,\n35.0,100/11,100/10,105/10,105/10,110/10,120/9,125/9,135/9,145/9,155/9,165/9,180/9,190/9,205/8,215/8,235/8,240/8,\n40.0,115/11,115/10,115/10,120/10,125/10,130/9,140/9,145/9,155/9,165/9,175/9,190/9,200/9,215/9,225/8,240/8,250/8,\n45.0,130/11,130/10,130/10,135/10,140/10,145/10,150/9,160/9,165/9,175/9,185/9,200/9,210/9,220/9,230/9,245/9,255/9,\n50.0,145/11,145/10,145/10,145/10,150/10,155/10,160/10,170/9,180/9,190/9,195/9,205/9,215/9,230/9,240/9,250/9,260/9,\n55.0,160/11,160/10,160/10,160/10,165/10,170/10,170/10,180/9,190/9,200/9,205/9,215/9,225/9,235/9,245/9,260/9,270/9,\n60.0,175/11,170/10,175/10,175/10,180/10,185/10,190/10,195/10,200/9,210/9,215/9,225/9,235/9,245/9,255/9,265/9,275/9,\n65.0,190/11,190/10,190/10,190/10,190/10,195/10,200/10,205/10,210/9,220/9,230/9,235/9,245/9,255/9,265/9,275/9,285/9,\n70.0,205/11,205/10,205/10,205/10,205/10,210/10,215/10,220/10,225/10,235/9,240/9,245/9,255/9,265/9,270/9,285/9,295/9,\n75.0,220/11,220/10,220/10,220/10,220/10,225/10,230/10,235/10,235/10,245/9,250/9,260/9,265/9,275/9,285/9,295/9,305/9,\n80.0,235/11,235/10,235/10,235/10,235/10,235/10,240/10,245/10,250/10,255/10,260/9,270/9,275/9,285/9,295/9,305/9,310/9,\n85.0,245/11,245/10,245/10,245/10,250/10,250/10,250/10,255/10,260/10,265/10,270/9,280/9,285/9,295/9,305/9,315/9,320/9,\n90.0,260/11,260/10,260/10,260/10,260/10,260/10,265/10,270/10,275/10,280/10,285/10,295/9,300/9,305/9,315/9,325/9,,\n95.0,275/11,275/10,275/10,275/10,275/10,275/10,280/10,285/10,285/10,290/10,300/10,305/9,310/9,320/9,325/9,335/9,`,
         "ซข": `0.0,0.0,5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,85.0\n,HIT,10 2,30 2,45/2,60/2,70/2,85/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,215/2,230/2,\n5.0,10 11,15 12,35/1,50/1,60/1,75/1,90/1,100/1,115/1,130/1,145/1,155/1,170/1,185/1,205/1,215/1,235/1,\n10.0,25 11,30 12,45/12,55/12,70/1,80/1,95/1,110/1,120/1,135/1,150/1,190/1,180/1,190/1,205/1,220/1,240/1,\n15.0,45/11,45/11,55/12,65/12,75/12,85/12,100/1,115/1,125/1,140/1,155/1,165/1,180/1,195/1,210/1,220/1,245/1,\n20.0,55/11,60/11,65/12,75/12,85/12,95/12,110/1,120/1,135/1,145/1,160/1,170/1,190/1,200/1,215/1,230/1,250/1,\n25.0,70/11,75/11,80/11,90/12,100/12,110/12,120/12,130/12,145/12,155/1,170/1,180/1,195/1,210/1,220/1,235/1,255/1,\n30.0,85/11,85/11,95/11,100/12,110/12,120/12,130/12,140/12,150/12,160/12,180/12,190/1,205/1,215/1,230/1,240/1,265/1,\n35.0,100/11,105/11,110/11,115/11,120/12,130/12,140/12,150/12,160/12,170/12,190/12,200/12,210/12,220/1,240/1,250/1,270/1,\n40.0,115/11,115/11,120/11,130/11,135/12,140/12,150/12,160/12,170/12,180/12,200/12,210/12,220/12,235/12,245/12,255/1,280/12,\n45.0,130/11,135/11,140/11,145/11,150/11,155/12,165/12,175/12,190/12,200/12,210/12,220/12,235/12,245/12,255/12,270/12,295/12,\n50.0,145/11,145/11,150/11,155/11,160/11,170/11,180/12,190/12,200/12,210/12,220/12,230/12,240/12,250/12,265/12,280/12,305/12,\n55.0,160/11,160/11,165/11,170/11,180/11,185/11,195/12,200/12,210/12,220/12,235/12,240/12,255/12,260/12,280/12,290/12,315/12,\n60.0,175/11,175/11,180/11,185/11,195/11,200/11,205/11,215/12,220/12,235/12,245/12,255/12,260/12,275/12,290/12,300/12,325/12,\n65.0,190/11,190/11,195/11,200/11,205/11,210/11,220/11,230/12,235/12,245/12,255/12,265/12,280/12,290/12,300/12,310/12,,\n70.0,205/11,205/11,210/11,215/11,220/11,225/11,235/11,240/11,250/12,260/12,270/12,280/12,290/12,300/12,310/12,320/12,,\n75.0,220/11,220/11,230/11,230/11,235/11,240/11,250/11,255/11,265/12,270/12,285/12,295/12,305/12,310/12,325/12,,,\n80.0,235/11,235/11,240/11,245/11,250/11,255/11,260/11,265/11,275/11,285/12,300/12,305/12,315/12,325/12,,,,\n85.0,245/11,250/11,255/11,255/11,260/11,270/11,275/11,280/11,290/11,300/12,310/12,320/12,330/12,,,,,\n90.0,260/11,265/11,270/11,270/11,280/11,280/11,290/11,300/11,305/11,310/12,325/12,330/12,,,,,,\n95.0,275/11,280/11,280/11,290/11,295/11,300/11,305/11,310/11,320/11,330/12,345/12,345/12,,,,,,`
-        };
+    };
 
-        // Parse CSV เข้า Database
-        const db = {"ขข":{},"ขซ":{},"ซซ":{},"ซข":{}};
-        for(let p in rawCSV){
-            let l=rawCSV[p].trim().split('\n');
-            for(let i=0;i<l.length;i++){
-                let c=l[i].split(',');
-                let y=parseInt(c[0]);
-                if(c[0]===""&&c[1]==="HIT") y=0;
-                if(isNaN(y)) continue;
-                if(!db[p][y]) db[p][y]={};
-                for(let x=0;x<=85;x+=5){
-                    let v=c[(x/5)+1] ? c[(x/5)+1].trim() : "";
-                    v=v.replace(/^(\d+)\s+(\d+)$/g,'$1/$2');
-                    db[p][y][x]=v;
-                }
+    const db = {"ขข":{},"ขซ":{},"ซซ":{},"ซข":{}};
+    
+    for(let p in rawCSV){
+        let l = rawCSV[p].trim().split('\n');
+        for(let i=0; i<l.length; i++){
+            let c = l[i].split(',');
+            let y = parseInt(c[0]);
+            if(c[0]==="" && c[1]==="HIT") y=0;
+            if(isNaN(y)) continue;
+            if(!db[p][y]) db[p][y] = {};
+            for(let x=0; x<=85; x+=5){
+                let v = c[(x/5)+1] ? c[(x/5)+1].trim() : "";
+                v = v.replace(/^(\d+)\s+(\d+)$/g, '$1/$2');
+                db[p][y][x] = v;
             }
         }
+    }
 
-        // 2. ฟังก์ชันคำนวณและแปลงพิกัด (ดึงจากตัวเต็ม)
-        function parseGridValue(s) { 
-            if(!s) return {val:0,dir:''}; 
-            let r = s.trim().toUpperCase(); 
-            if(r==='0'||r==='00'||r==='HIT') return {val:0,dir:''}; 
-            let v = parseFloat(r.replace(/[^\d.]/g,'')); 
-            if(isNaN(v)) return {val:0,dir:''}; 
-            return {val:v, dir:r.includes('L')?'L':(r.includes('R')?'R':'')}; 
+    // 2. ฟังก์ชันวิเคราะห์ค่าย้ายแกน
+    function parseGridValue(s) { 
+        if(!s) return {val:0, dir:''}; 
+        let r = s.trim().toUpperCase(); 
+        if(r==='0' || r==='00' || r==='HIT') return {val:0, dir:''}; 
+        let v = parseFloat(r.replace(/[^\d.]/g,'')); 
+        if(isNaN(v)) return {val:0, dir:''}; 
+        return {val:v, dir:r.includes('L')?'L':(r.includes('R')?'R':'')}; 
+    }
+
+    // 3. ฟังก์ชันประเมินผล (แปลงพิกัดกริดเดี่ยวๆ)
+    function parseScore(iv) {
+        let c = iv.toUpperCase().trim();
+        if(c.includes('N/S') || c.includes('-')) return 'N/S';
+        if(c.includes('99')) c = c.replace(/99/g, 'OUT/');
+        let mOut = c.match(/OUT\/\d*/);
+        if (mOut) return mOut[0];
+        if(c==='00' || c==='0 0' || c==='HIT') return 'HIT';
+        if(c==='0') return '0';
+        if(c.includes('D') && !c.includes('OUT') && !c.includes('N/S')) return 'D';
+
+        if(/^\d+$/.test(c.replace(/\s+/g,'')) || c.includes('/')) return c;
+
+        c = c.replace(/^0(?=\d)/g,'0 ').replace(/([LR])0$/g,'$1 0');
+        let t = [...c.matchAll(/(00|0|[1-9]\d*[LR]?)/g)];
+        if(t && t.length >= 2){
+            let l = parseGridValue(t[0][0]), r = parseGridValue(t[1][0]);
+            let p = (l.dir===''?'R':l.dir)==='L'?'ซ':'ข', p2 = (r.dir===''?'R':r.dir)==='L'?'ซ':'ข';
+            let y = Math.abs(l.val).toString(), x = Math.abs(r.val).toString();
+            if(db[p+p2] && db[p+p2][y] && db[p+p2][y][x]) return db[p+p2][y][x];
         }
+        return "?";
+    }
 
-        function parseScore(iv) { 
-            let c = iv.toUpperCase().trim(); 
-            if(c==='00' || c==='0 0' || c==='HIT') return 'HIT'; 
-            if(c==='0') return '0'; 
-            if(c==='-' || c==='D' || c==='N/S') return c==='-'?'N/S':c; 
-            if(c.startsWith('--')) return 'OUT/'+c.replace('--','').trim(); 
-            if(c.startsWith('OUT/') || /^\d+$/.test(c.replace(/\s+/g,'')) || c.includes('/')) return c; 
-            
-            c = c.replace(/^0(?=\d)/g,'0 ').replace(/([LR])0$/g,'$1 0'); 
-            let t = [...c.matchAll(/(00|0|[1-9]\d*[LR]?)/g)]; 
-            if(t && t.length>=2){ 
-                let l = parseGridValue(t[0][0]), r = parseGridValue(t[1][0]); 
-                let p = (l.dir===''?'R':l.dir)==='L'?'ซ':'ข', p2 = (r.dir===''?'R':r.dir)==='L'?'ซ':'ข'; 
-                let y = Math.abs(l.val).toString(), x = Math.abs(r.val).toString(); 
-                if(db[p+p2] && db[p+p2][y] && db[p+p2][y][x]) return db[p+p2][y][x]; 
-            } 
-            return "?"; 
-        }
-
-        function processInput(str) {
-            let d=[], iM=false;
-            let separatorRegex = /\s*(?:88|\|)\s*/;
-            
-            if(separatorRegex.test(str)){
-                iM=true; 
-                let p=str.split(separatorRegex);
-                let lC=p[0].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|00|0)/g)||[];
-                let rC=p[1].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|00|0)/g)||[];
-                let mL=Math.max(lC.length,rC.length);
-                for(let i=0;i<mL;i++) d.push(`${lC[i]||'-'} ${rC[i]||'-'}`.replace(/\s+/g,' ').trim());
-            } else { 
-                if(str.trim() === '+') { d=['+']; iM=false; }
-                else { let p=str.split('+').map(s=>s.trim()).filter(s=>s!==""); iM=p.length>1; d=p; }
-            }
-            if(d.length===1&&d[0]==="") d=["D"];
-
-            let pD = d.map(r => {
-                let v=r; if(v===''||v==='+') v='D'; 
-                if(v.includes('99')) v=v.replace(/99/g,'OUT/'); 
-                if(v.includes('--')) v=v.replace(/--/g,'OUT/'); 
-                
-                let p=""; 
-                if(v.includes('-')||v.includes('N/S')) p="N/S"; 
-                else if(v.includes('OUT')){ let m=v.match(/OUT\/\d*/); p=m?m[0]:"OUT/?"; } 
-                else p = parseScore(v); 
-                return {raw:r, parsed:p};
-            }).filter(p => p.parsed !== "" && p.parsed !== "?");
-            
-            return {parsedDrops: pD, isMulti: iM};
-        }
-
-// 3. ระบบแสดงผล (UI Interactions) & เสียงพูด
-        const inputEl = document.getElementById('rapidInput');
-        const previewEl = document.getElementById('previewText');
-
-        let hasSpoken = false; // สเตทจำการกด Enter
-        let thaiVoice = null;  // ตัวแปรเก็บเสียงภาษาไทย
-
-        // ฟังก์ชันโหลดเสียงภาษาไทยมาสแตนด์บาย
-        function loadThaiVoice() {
-            let voices = window.speechSynthesis.getVoices();
-            // หา Voice ที่มีรหัสภาษา th-TH หรือชื่อมีคำว่า Thai
-            thaiVoice = voices.find(v => v.lang.includes('th') || v.name.toLowerCase().includes('thai'));
-        }
-        // เบราว์เซอร์บางตัวโหลดเสียงช้า ต้องดัก event นี้
-        if (window.speechSynthesis.onvoiceschanged !== undefined) {
-            window.speechSynthesis.onvoiceschanged = loadThaiVoice;
-        }
-
-        // ฟังก์ชันพูด
-        function speakThai(text) {
-            if (!text || !window.speechSynthesis) return;
-            
-            // ยกเลิกเสียงที่อาจจะค้างอยู่ก่อนหน้า
-            window.speechSynthesis.cancel(); 
-
-            let spokenText = text
-                .replace(/\//g, ' ทิศ ')
-                .replace(/\+/g, ' บวก ')
-                .replace(/HIT/g, 'ฮิต')
-                .replace(/D/g, 'ดราย')
-                .replace(/N\/S/g, 'โนสปาร์ค')
-                .replace(/OUT/g, 'เอาท์');
-
-            let utterance = new SpeechSynthesisUtterance(spokenText);
-            utterance.lang = 'th-TH'; // กำหนดภาษาหลัก
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            
-            // บังคับยัดเสียงไทย (ถ้าหาเจอในเครื่อง)
-            if (thaiVoice) {
-                utterance.voice = thaiVoice;
-            }
-
-            window.speechSynthesis.speak(utterance);
-        }
-
-        // เมื่อพิมพ์ใหม่ รีเซ็ตให้กลับมายังไม่ได้พูด
-        inputEl.addEventListener('input', function() {
-            hasSpoken = false;
-            let raw = this.value.toUpperCase();
-            
-            raw = raw.replace(/\//g, 'L').replace(/\*/g, 'R').replace(/88/g, '|');
-            let tokens = raw.match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|HIT|N\/S|D|\-|\+|\d+\/\d*|00|0|[1-9]\d*[LR]?|\|)/gi) || [];
-            let formatted = tokens.join(' ');
-            this.value = formatted;
-
-            if(!formatted.trim()){
-                previewEl.innerHTML = '';
-                return;
-            }
-
-let result = processInput(formatted);
-            if(result.parsedDrops.length > 0) {
-                let visual = result.isMulti ? 
-                    `<span class="plus-sign">+</span> ` + result.parsedDrops.map(x=>x.parsed).join(' <span class="plus-sign">+</span> ') : 
-                    result.parsedDrops.map(x=>x.parsed).join(' ');
-                
-                previewEl.innerHTML = visual;
-
-                // 🌟 ระบบลดขนาดฟอนต์อัตโนมัติตามจำนวนลูก
-                let dropsCount = result.parsedDrops.length;
-                if (dropsCount === 1) {
-                    previewEl.style.fontSize = "26vh"; // 1 ลูก ใหญ่สุด
-                } else if (dropsCount === 2) {
-                    previewEl.style.fontSize = "16vh"; // 2 ลูก เล็กลงมา
-                } else if (dropsCount === 3) {
-                    previewEl.style.fontSize = "11vh"; // 3 ลูก เล็กลงอีก
-                } else {
-                    previewEl.style.fontSize = "8vh";  // 4 ลูกขึ้นไป เล็กสุดเพื่อไม่ให้ล้น
-                }
-
-            } else {
-                previewEl.innerHTML = '';
-                previewEl.style.fontSize = "26vh"; // ค่าเริ่มต้น
-            }
-        });
-
-        // ดักการกดปุ่ม Enter
-        inputEl.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-
-                if (this.value.trim() === '') {
-                    clearScreen();
-                    return;
-                }
-
-                if (!hasSpoken) {
-                    let currentResult = previewEl.innerText.trim();
-                    if (currentResult) {
-                        speakThai(currentResult);
-                        hasSpoken = true; // ล็อคว่าพูดแล้ว
-                    }
-                } else {
-                    // พูดแล้ว มากดซ้ำ = สั่งเคลียร์จอ
-                    clearScreen();
-                }
-            }
-        });
-
-        function clearScreen() {
-            inputEl.value = '';
-            previewEl.innerHTML = '';
-            document.getElementById('calcDist').innerText = "-";
-            document.getElementById('calcClock').innerText = "-";
-            drawTargetHUD(null, null);
-            hasSpoken = false;
-            window.speechSynthesis.cancel(); // ตัดเสียงพูดถ้ายังพูดไม่จบ
-        }
-
-        // สั่งให้พิมพ์ได้ตลอดเวลา ไม่ว่าจะคลิกตรงไหนของจอ
-        document.body.addEventListener('click', () => inputEl.focus());
+    // 4. ระบบจับคู่การพิมพ์ (ลอกมาจากระบบหลักเป๊ะๆ)
+    function parseInputString(str) {
+        let d = [], iM = false;
+        let separatorRegex = /\s*\|\s*/;
         
-        // โหลดเสียงครั้งแรกตอนเปิดหน้าเว็บ
-        setTimeout(loadThaiVoice, 100);
-    </script>
+        if(separatorRegex.test(str)){
+            iM = true; 
+            let p = str.split(separatorRegex);
+            let lC = p[0].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|0)/g)||[];
+            let rC = p[1].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|0)/g)||[];
+            let mL = Math.max(lC.length, rC.length);
+            
+            // จับคู่ตัวซ้ายและขวาตามลำดับ
+            for(let i=0; i<mL; i++) {
+                d.push(`${lC[i]||'-'} ${rC[i]||'-'}`.replace(/\s{2,}/g,' ').trim());
+            }
+        } else { 
+            if(str.trim() === '+') { d=['+']; iM=false; }
+            else { 
+                let p = str.split('+').map(s=>s.trim()).filter(s=>s!==""); 
+                iM = p.length > 1; 
+                d = p; 
+            }
+        }
+        
+        if(d.length === 1 && d[0] === "") d = ["D"];
+        
+        let pD = d.map(r => {
+            let v = r; 
+            if(v===''||v==='+') v='D'; 
+            if(v.includes('99')) v = v.replace(/99/g,'OUT/'); 
+            if(v.includes('--')) v = v.replace(/--/g,'OUT/');
+            
+            let p = ""; 
+            if(v.includes('-')||v.includes('N/S')) p="N/S"; 
+            else if(v.includes('OUT')){
+                let m = v.match(/OUT\/\d*/);
+                p = m ? m[0] : "OUT/?";
+            } 
+            else {
+                p = parseScore(v);
+            }
+            
+            return {raw: r, parsed: p};
+        }).filter(p => p.parsed !== "" && p.parsed !== "?");
+        
+        return {parsedDrops: pD, isMulti: iM};
+    }
+
+    // 5. ระบบรับค่าและแสดงผล
+    const rapidInput = document.getElementById('rapidInput');
+    const preview = document.getElementById('previewText');
+
+    rapidInput.addEventListener('input', function() {
+        let raw = this.value.toUpperCase();
+        
+        // กฎการแปลงค่า (รองรับวงเล็บแบบที่ขอ)
+        raw = raw.replace(/\./g, '|'); // แยก drop (multi)
+        raw = raw.replace(/\//g, 'L');
+        raw = raw.replace(/\*/g, 'R');
+        raw = raw.replace(/\(/g, 'L'); // ( = ซ้าย
+        raw = raw.replace(/\)/g, 'R'); // ) = ขวา
+        
+        let tokens = raw.match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|HIT|N\/S|D|\-|\+|\d+\/\d*|0|[1-9]\d*[LR]?|\|)/gi) || [];
+        let rV = tokens.join(' ');
+        this.value = rV;
+
+        if(!rV.trim()){ 
+            preview.innerHTML = ''; 
+            return; 
+        }
+
+        // โยนเข้าสมองกลตัวเต็ม (ตัวเดียวกับระบบหลัก)
+        let R = parseInputString(rV);
+
+        if (R.parsedDrops.length > 0) {
+            // นำผลลัพธ์มาจัดเรียงสีสัน
+            let visualResult = R.parsedDrops.map(x => {
+                let p = x.parsed;
+                if(p.includes('HIT')) return '<span class="color-hit">HIT</span>';
+                if(p.includes('N/S')) return '<span class="color-miss">N/S</span>';
+                if(p.includes('OUT')) return p.replace(/OUT\/\d*/g, '<span class="color-miss">$&</span>');
+                return `<span class="color-score">${p}</span>`;
+            }).join(' <span class="plus-sign">|</span> ');
+            
+            preview.innerHTML = visualResult;
+        } else {
+            preview.innerHTML = '';
+        }
+    });
+
+    rapidInput.addEventListener('keydown', function(e) {
+        if(e.key === 'Enter') {
+            // ล้างหน้าจอเมื่อกด Enter
+            this.value = '';
+            preview.innerHTML = '';
+        }
+    });
+
+    rapidInput.focus();
+
+</script>
 </body>
 </html>
