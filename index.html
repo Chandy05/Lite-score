@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Chandy Calc">
     
-    <title>Chandy Calculator - Voice Command</title>
+    <title>Chandy Calculator - Pro Voice & Calibration</title>
     <style>
         body { 
             margin: 0; padding: 0; 
@@ -26,7 +26,7 @@
         /* กล่องบน: แสดงผลลัพธ์ใหญ่ๆ */
         .preview-container {
             width: 100%;
-            height: 55vh;
+            height: 54vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -49,7 +49,6 @@
             width: 100%;
         }
 
-        /* ตกแต่งสีสันพิเศษ */
         .color-hit { color: #00ff00; text-shadow: 0 0 25px rgba(0,255,0,0.8); }
         .color-miss { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.8); }
         .color-score { color: #00e5ff; text-shadow: 0 0 25px rgba(0, 229, 255, 0.8); }
@@ -57,48 +56,47 @@
         /* กล่องล่าง: สำหรับพิมพ์ค่าและควบคุมเสียง */
         .input-container {
             width: 95%;
-            max-width: 850px;
+            max-width: 900px;
             margin-top: 1vh; 
         }
 
-        /* แถบสถานะไมโครโฟน */
         .voice-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 10px;
             margin-bottom: 10px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.07);
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             color: #fff;
             font-family: Tahoma, sans-serif;
         }
 
-        .mic-btn {
-            background: #ff3333;
-            color: #fff;
+        .btn {
             border: none;
-            padding: 10px 22px;
-            font-size: 16px;
+            padding: 10px 18px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
-        .mic-btn.active {
-            background: #00c853;
-            box-shadow: 0 0 15px rgba(0, 200, 83, 0.7);
-        }
+        .mic-btn { background: #ff3333; color: #fff; }
+        .mic-btn.active { background: #00c853; box-shadow: 0 0 15px rgba(0, 200, 83, 0.7); }
+        .cal-btn { background: #3a506b; color: #fff; }
+        .cal-btn:hover { background: #5bc0be; color: #000; }
 
         .voice-log {
-            font-size: 16px;
+            font-size: 15px;
             color: #90e0ef;
             flex: 1;
-            margin-left: 20px;
+            margin: 0 10px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -136,21 +134,95 @@
         }
 
         .voice-guide {
-            margin-top: 10px;
+            margin-top: 8px;
             color: #8da9c4;
             font-family: Tahoma, sans-serif;
             font-size: 13px;
             text-align: center;
+            line-height: 1.5;
         }
-        .voice-guide span {
-            color: #00e5ff;
+        .voice-guide span { color: #00e5ff; font-weight: bold; }
+
+        /* หน้าต่าง Modal คาลิเบรตเสียง */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            font-family: Tahoma, sans-serif;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: #1b263b;
+            color: #fff;
+            width: 92%;
+            max-width: 680px;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #00e5ff;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #415a77;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 { margin: 0; color: #00e5ff; }
+        .cal-row {
+            display: grid;
+            grid-template-columns: 140px 1fr 130px;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.05);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .cal-label { font-weight: bold; font-size: 14px; color: #e0e1dd; }
+        .cal-label small { display: block; color: #8da9c4; font-weight: normal; }
+        .cal-input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #415a77;
+            background: #0d1b2a;
+            color: #00ff88;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .record-cal-btn {
+            background: #e63946;
+            color: #fff;
+            border: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+            cursor: pointer;
             font-weight: bold;
+            font-size: 13px;
+        }
+        .record-cal-btn.recording {
+            background: #ffb703;
+            color: #000;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 1px solid #415a77;
         }
     </style>
 </head>
 <body>
 
-    <!-- กล่องโชว์ผลลัพธ์ (จัดให้อยู่ด้านบน) -->
+    <!-- กล่องโชว์ผลลัพธ์ -->
     <div class="preview-container">
         <div id="previewText"></div>
     </div>
@@ -158,8 +230,9 @@
     <!-- กล่องพิมพ์ข้อมูลและแถบเสียง -->
     <div class="input-container">
         <div class="voice-bar">
-            <button id="micToggleBtn" class="mic-btn">🎤 เปิดรับคำสั่งเสียง</button>
-            <div id="voiceStatusText" class="voice-log">กดปุ่มเปิดไมค์เพื่อเริ่มสั่งงานด้วยเสียง...</div>
+            <button id="micToggleBtn" class="btn mic-btn">🎤 เปิดไมค์ (หรือกด F2)</button>
+            <div id="voiceStatusText" class="voice-log">พร้อมใช้งาน — กดเปิดไมค์หรือตั้งค่าคาลิเบรตเสียง</div>
+            <button id="openCalBtn" class="btn cal-btn">⚙️ คาลิเบรตเสียง</button>
         </div>
 
         <div id="inputBoxWrapper" class="input-wrapper">
@@ -167,7 +240,26 @@
         </div>
 
         <div class="voice-guide">
-            คำสั่งเสียง: <span>"ห้าซ้าย สิบขวา"</span> (5L 10R) | <span>"ศูนย์"</span> (0) | <span>"ฮิต"</span> (HIT) | <span>"โนสะปาร์ค"</span> (N/S) | <span>"เอาท์ทิศสิบสอง"</span> (OUT/12) | <span>"ดราย"</span> (D) | <span>"จุด"</span> (|) | <span>"เคลียร์"</span> (ล้างจอ)
+            พิกัดตาราง: <span>"ห้าซ้าย สิบขวา"</span> (5L 10R) | ทิศโดยตรง: <span>"หนึ่งร้อยยี่สิบทิศเจ็ด"</span> (120/7) | ผลปืน: <span>"สิบ"</span> (10) <br>
+            สถานะ: <span>"ฮิต"</span> (HIT) | <span>"โนสะปาร์ค"</span> (N/S) | <span>"เอาท์ทิศสิบสอง"</span> (OUT/12) | <span>"ดราย"</span> (D) | <span>"จุด"</span> (|) | <span>"เคลียร์"</span> (ล้างจอ)
+        </div>
+    </div>
+
+    <!-- หน้าต่าง Modal สำหรับคาลิเบรตเสียงเฉพาะบุคคล -->
+    <div id="calModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>⚙️ คาลิเบรตเสียงพูด (จำสำเนียงผู้ใช้หลายคน)</h3>
+                <button id="closeCalBtn" class="btn" style="background:#415a77;color:#fff;padding:6px 12px;">✕ ปิด</button>
+            </div>
+            <p style="font-size:13px; color:#ccc; margin-top:0;">
+                กดปุ่ม <b>"🎙️ พูดเพื่อจำเสียง"</b> แล้วออกเสียงคำนั้นตามปกติ ระบบจะเพิ่มคำที่ไมค์ได้ยินเข้าไปในคลังคำศัพท์อัตโนมัติ (คั่นแต่ละคำด้วยเครื่องหมายจุลภาค <code>,</code>)
+            </p>
+            <div id="calRowsContainer"></div>
+            <div class="modal-footer">
+                <button id="resetCalBtn" class="btn" style="background:#6c757d;color:#fff;">คืนค่าเริ่มต้น</button>
+                <button id="saveCalBtn" class="btn" style="background:#00c853;color:#fff;">💾 บันทึกการตั้งค่า</button>
+            </div>
         </div>
     </div>
 
@@ -183,7 +275,6 @@
     };
 
     const db = {"ขข":{},"ขซ":{},"ซซ":{},"ซข":{}};
-    
     for(let p in rawCSV){
         let l = rawCSV[p].trim().split('\n');
         for(let i=0; i<l.length; i++){
@@ -200,7 +291,6 @@
         }
     }
 
-    // 2. ฟังก์ชันวิเคราะห์ค่าย้ายแกน
     function parseGridValue(s) { 
         if(!s) return {val:0, dir:''}; 
         let r = s.trim().toUpperCase(); 
@@ -210,7 +300,6 @@
         return {val:v, dir:r.includes('L')?'L':(r.includes('R')?'R':'')}; 
     }
 
-    // 3. ฟังก์ชันประเมินผล (แปลงพิกัดกริดเดี่ยวๆ)
     function parseScore(iv) {
         let c = iv.toUpperCase().trim();
         if(c.includes('N/S') || c.includes('-')) return 'N/S';
@@ -221,6 +310,7 @@
         if(c==='0') return '0';
         if(c.includes('D') && !c.includes('OUT') && !c.includes('N/S')) return 'D';
 
+        // รองรับผลปืนตัวเลขเดี่ยวๆ (เช่น 10, 12) หรือระยะ/ทิศโดยตรง (เช่น 120/7)
         if(/^\d+$/.test(c.replace(/\s+/g,'')) || c.includes('/')) return c;
 
         c = c.replace(/^0(?=\d)/g,'0 ').replace(/([LR])0$/g,'$1 0');
@@ -234,7 +324,6 @@
         return "?";
     }
 
-    // 4. ระบบจับคู่การพิมพ์
     function parseInputString(str) {
         let d = [], iM = false;
         let separatorRegex = /\s*\|\s*/;
@@ -245,7 +334,6 @@
             let lC = p[0].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|0)/g)||[];
             let rC = p[1].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|0)/g)||[];
             let mL = Math.max(lC.length, rC.length);
-            
             for(let i=0; i<mL; i++) {
                 d.push(`${lC[i]||'-'} ${rC[i]||'-'}`.replace(/\s{2,}/g,' ').trim());
             }
@@ -275,23 +363,18 @@
             else {
                 p = parseScore(v);
             }
-            
             return {raw: r, parsed: p};
         }).filter(p => p.parsed !== "" && p.parsed !== "?");
         
         return {parsedDrops: pD, isMulti: iM};
     }
 
-    // 5. ระบบรับค่าและแสดงผล
     const rapidInput = document.getElementById('rapidInput');
     const preview = document.getElementById('previewText');
 
     function processRapidInput() {
         let raw = rapidInput.value.toUpperCase();
-        
         raw = raw.replace(/\./g, '|');
-        raw = raw.replace(/\//g, 'L');
-        raw = raw.replace(/\*/g, 'R');
         raw = raw.replace(/\(/g, 'L');
         raw = raw.replace(/\)/g, 'R');
         
@@ -305,195 +388,376 @@
         }
 
         let R = parseInputString(rV);
-
         if (R.parsedDrops.length > 0) {
-            let visualResult = R.parsedDrops.map(x => {
+            preview.innerHTML = R.parsedDrops.map(x => {
                 let p = x.parsed;
                 if(p.includes('HIT')) return '<div class="color-hit">HIT</div>';
                 if(p.includes('N/S')) return '<div class="color-miss">N/S</div>';
                 if(p.includes('OUT')) return `<div class="color-miss">${p}</div>`;
                 return `<div class="color-score">${p}</div>`;
             }).join('');
-            
-            preview.innerHTML = visualResult;
         } else {
             preview.innerHTML = '';
         }
     }
 
     rapidInput.addEventListener('input', processRapidInput);
-
     rapidInput.addEventListener('keydown', function(e) {
         if(e.key === 'Enter') {
             this.value = '';
             preview.innerHTML = '';
         }
     });
-
     rapidInput.focus();
 
     // ==========================================
-    // 6. ระบบแปลงคำพูดภาษาไทยเป็นรหัส Chandy (Voice Parser)
+    // 2. คลังคำศัพท์คาลิเบรตเสียง (บันทึกใน LocalStorage)
     // ==========================================
-    function convertThaiWordsToDigits(text) {
-        let s = text;
-        // แปลงคำบอกจำนวนหลักสิบและตัวเลขไทยเป็นอารบิก (เรียงจากคำยาวไปสั้นเพื่อความแม่นยำ)
-        const numRules = [
-            [/เก้าสิบห้า/g, '95'], [/เก้าสิบ/g, '90'],
-            [/แปดสิบห้า/g, '85'], [/แปดสิบ/g, '80'],
-            [/เจ็ดสิบห้า/g, '75'], [/เจ็ดสิบ/g, '70'],
-            [/หกสิบห้า/g, '65'], [/หกสิบ/g, '60'],
-            [/ห้าสิบห้า/g, '55'], [/ห้าสิบ/g, '50'],
-            [/สี่สิบห้า/g, '45'], [/สี่สิบ/g, '40'],
-            [/สามสิบห้า/g, '35'], [/สามสิบ/g, '30'],
-            [/ยี่สิบห้า/g, '25'], [/ยี่สิบ/g, '20'],
-            [/สิบสอง/g, '12'], [/สิบเอ็ด/g, '11'], [/สิบห้า/g, '15'],
-            [/สิบเก้า/g, '19'], [/สิบแปด/g, '18'], [/สิบเจ็ด/g, '17'],
-            [/สิบหก/g, '16'], [/สิบสี่/g, '14'], [/สิบสาม/g, '13'],
-            [/สิบ/g, '10'],
-            [/เก้า/g, '9'], [/แปด/g, '8'], [/เจ็ด/g, '7'], [/หก/g, '6'],
-            [/ห้า/g, '5'], [/สี่/g, '4'], [/สาม/g, '3'], [/สอง/g, '2'],
-            [/หนึ่ง/g, '1'], [/ศูนย์/g, '0']
-        ];
-        for (const [pattern, replacement] of numRules) {
-            s = s.replace(pattern, replacement);
-        }
-        return s;
+    const defaultVoiceDict = {
+        CLEAR: ["เคลียร์", "เคียร์", "คลียร์", "เขี่ย", "เฮีย", "เพลีย", "เสีย", "เมีย", "clear", "ลบ", "ล้าง"],
+        HIT:   ["ฮิต", "ฮิช", "ฮิด", "ฮิป", "ทิศ", "คิด", "ติด", "วิท", "นิด", "ฟิต", "พิษ", "มิด", "ซิป", "hit"],
+        NS:    ["โนสะปาร์ค", "โนสปาร์ค", "โนสปาก", "โนสปาค", "โนปาร์ค", "โนปาก", "หนูสปาร์ค", "นกกระจอก", "โน๊ตบุ๊ค", "no spark", "n/s", "เอ็นเอส", "ไม่เห็น"],
+        DRY:   ["ดราย", "ดาย", "ดรัย", "ราย", "ตาย", "ได้", "นาย", "ลาย", "ทราย", "ชาย", "ยาย", "บ่าย", "คล้าย", "กลาย", "dry"],
+        OUT:   ["เอาท์ทิศ", "เอาต์ทิศ", "เอ้าท์ทิศ", "เอ้าทิศ", "เอาทิศ", "อาทิตย์", "ออฟฟิศ", "เอาท์", "เอาต์", "เอ้าท์", "เอ้า", "เอา", "อ้าว", "าว", "เฮา", "เมา", "เสา", "เก่า", "out"],
+        PIPE:  ["จุด", "สุด", "ขุด", "หลุด", "หยุด", "ฉุด", "คั่น"],
+        DIR:   ["ทิศ", "ทิด", "พิษ", "ชิด", "ทับ", "ขับ", "รับ", "นับ", "ครับ", "สแลช"],
+        LEFT:  ["ซ้าย", "สาย", "ทราย", "ชาย", "ไซส์", "ตาย", "ยาย", "ขาย"],
+        RIGHT: ["ขวา", "ฝา", "ขา", "ฟ้า", "กว่า", "ผา", "หมา", "ป๋า", "มา", "วา"]
+    };
+
+    const calConfigMeta = [
+        { key: 'OUT',   title: 'เอาท์ทิศ... (OUT/)', desc: 'คำนำหน้าก่อนบอกเลขทิศ เช่น เอาท์ทิศ, อาทิตย์' },
+        { key: 'NS',    title: 'โนสะปาร์ค (N/S)',   desc: 'คำเรียกเมื่อไม่เห็นควัน/ประกายไฟ' },
+        { key: 'DRY',   title: 'ดราย (D)',          desc: 'คำเรียกเมื่อลูกด้าน เช่น ดราย, ดาย, ได้' },
+        { key: 'HIT',   title: 'ฮิต (HIT)',         desc: 'คำเรียกเมื่อเข้าเป้า เช่น ฮิต, คิด, ติด' },
+        { key: 'DIR',   title: 'ทิศ / ทับ (/)',     desc: 'ตัวคั่นระยะกับทิศ เช่น 120 ทิศ 7 -> 120/7' },
+        { key: 'LEFT',  title: 'ซ้าย (L)',          desc: 'คำบอกฝั่งซ้าย เช่น ซ้าย, สาย' },
+        { key: 'RIGHT', title: 'ขวา (R)',           desc: 'คำบอกฝั่งขวา เช่น ขวา, ฝา' },
+        { key: 'PIPE',  title: 'จุด (|)',           desc: 'ตัวคั่นชุดซ้าย-ขวา เวลาพูดหลายลูก' },
+        { key: 'CLEAR', title: 'เคลียร์ (ล้างจอ)',   desc: 'คำสั่งล้างหน้าจอเพื่อเริ่มลูกใหม่' }
+    ];
+
+    function loadVoiceDict() {
+        try {
+            const saved = localStorage.getItem('chandy_voice_dict_v2');
+            if (saved) return Object.assign({}, defaultVoiceDict, JSON.parse(saved));
+        } catch(e) {}
+        return JSON.parse(JSON.stringify(defaultVoiceDict));
     }
 
-    function parseVoiceToChandyCode(transcript) {
-        let s = transcript.trim();
+    let voiceDict = loadVoiceDict();
 
-        // ตรวจจับคำสั่ง "เคลียร์" เพื่อล้างหน้าจอ
-        if (/เคลียร์|เคียร์|คลียร์|clear/i.test(s)) {
+    // ==========================================
+    // 3. ระบบแปลงตัวเลขภาษาไทย (รองรับหลักหน่วย ถึง หลักร้อย)
+    // ==========================================
+    const thaiDigitMap = {
+        'ศูนย์':0, 'หนึ่ง':1, 'เอ็ด':1, 'สอง':2, 'ยี่':2, 'สาม':3, 'สี่':4,
+        'ห้า':5, 'หก':6, 'เจ็ด':7, 'แปด':8, 'เก้า':9
+    };
+
+    function parseThaiNumberWord(word) {
+        let total = 0;
+        let rem = word;
+
+        // หลักร้อย (เช่น หนึ่งร้อย, ร้อย, สองร้อย)
+        let m100 = rem.match(/^(หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?ร้อย/);
+        if (m100) {
+            total += (m100[1] ? thaiDigitMap[m100[1]] : 1) * 100;
+            rem = rem.slice(m100[0].length);
+        }
+
+        // หลักสิบ (เช่น ยี่สิบ, สิบ, สามสิบ)
+        let m10 = rem.match(/^(ยี่|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?สิบ/);
+        if (m10) {
+            total += (m10[1] ? thaiDigitMap[m10[1]] : 1) * 10;
+            rem = rem.slice(m10[0].length);
+        }
+
+        // หลักหน่วย
+        if (rem && thaiDigitMap.hasOwnProperty(rem)) {
+            total += thaiDigitMap[rem];
+        }
+        return total;
+    }
+
+    function convertAllThaiNumbers(text) {
+        // จับกลุ่มคำตัวเลขไทยตั้งแต่หลักร้อยลงมาถึงหลักหน่วย
+        const numPattern = /(?:(?:หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?ร้อย(?:(?:ยี่|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?สิบ)?(?:หนึ่ง|เอ็ด|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?|(?:ยี่|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?สิบ(?:หนึ่ง|เอ็ด|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)?|ศูนย์|หนึ่ง|สอง|สาม|สี่|ห้า|หก|เจ็ด|แปด|เก้า)/g;
+        return text.replace(numPattern, (match) => ` ${parseThaiNumberWord(match)} `);
+    }
+
+    function escapeRegex(str) {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function buildRegexFromList(list) {
+        // เรียงคำยาวไปสั้นเพื่อไม่ให้คำสั้นตัดหน้าคำยาว
+        const sorted = [...list].map(s => s.trim()).filter(Boolean).sort((a,b) => b.length - a.length);
+        return sorted.map(escapeRegex).join('|');
+    }
+
+    // ==========================================
+    // 4. ตัวแปลคำสั่งเสียงหลัก (รองรับพิกัดตาราง, 120/7, ผลปืน 10 12, และคำคาลิเบรต)
+    // ==========================================
+    function parseVoiceToChandyCode(transcript) {
+        let s = transcript.trim().toLowerCase();
+        // ลบช่องว่างระหว่างคำไทยที่มักแยกกัน เช่น "โน สปาร์ค" -> "โนสปาร์ค"
+        let compact = s.replace(/\s+/g, '');
+
+        // 1. ตรวจจับคำสั่ง "เคลียร์"
+        const clearRx = new RegExp(buildRegexFromList(voiceDict.CLEAR), 'i');
+        if (clearRx.test(compact)) {
             return { isClear: true, code: '' };
         }
 
-        // 1. แปลงคำเรียกตัวเลขเป็นตัวเลขอารบิกก่อน
-        s = convertThaiWordsToDigits(s);
+        // 2. แปลงคำในคลังคาลิเบรตที่เป็นคำเดี่ยวๆ ก่อนแปลงตัวเลข (ป้องกันคำพ้องเสียงไปชนกับตัวเลข)
+        const nsRx = new RegExp(buildRegexFromList(voiceDict.NS), 'gi');
+        s = s.replace(nsRx, ' N/S ');
+        compact = compact.replace(nsRx, ' N/S ');
 
-        // 2. แปลงคำว่า "เอาท์ทิศ..." หรือ "เอาท์..." ตามด้วยเลข 1-12 เป็นรหัส 99xx (เช่น เอาท์ทิศสิบสอง -> 9912)
-        s = s.replace(/(?:เอาท์|เอาต์|เอ้าท์|เอ้า|เอ๊าท์|out)\s*(?:ทิศ)?\s*(1[0-2]|[1-9])/gi, ' 99$1 ');
+        // 3. แปลงคำบอกจำนวนไทยเป็นตัวเลขอารบิก (เช่น หนึ่งร้อยยี่สิบ -> 120, สิบสอง -> 12)
+        s = convertAllThaiNumbers(s);
 
-        // 3. แปลง "โนสะปาร์ค" (รวมคำพ้องเสียงที่ Web Speech API มักถอดออกมา) เป็น N/S
-        s = s.replace(/โน\s*ส[ะป]?ปา[ร์คก]*|โน\s*สปาร์ค|โน\s*สปาก|no\s*spark|เอ็น\s*เอส/gi, ' N/S ');
+        // 4. แปลง "เอาท์ทิศ [1-12]" หรือ "เอาท์ [1-12]" -> 99xx (แสดงเป็น OUT/xx)
+        const outWords = buildRegexFromList(voiceDict.OUT);
+        const dirWords = buildRegexFromList(voiceDict.DIR);
+        const outRx = new RegExp(`(?:${outWords})\\s*(?:${dirWords})?\\s*(1[0-2]|[1-9])\\b`, 'gi');
+        s = s.replace(outRx, ' 99$1 ');
 
-        // 4. แปลง "ฮิต" เป็น HIT
-        s = s.replace(/ฮิต|ฮิช|ฮิด|hit/gi, ' HIT ');
+        // 5. แปลง "[ระยะ] ทิศ [1-12]" เช่น "120 ทิศ 7" หรือ "120 ทับ 7" -> 120/7
+        const slashRx = new RegExp(`(\\d+)\\s*(?:${dirWords}|\\/)\\s*(1[0-2]|[1-9])\\b`, 'gi');
+        s = s.replace(slashRx, ' $1/$2 ');
 
-        // 5. แปลง "ดราย" เป็น D
-        s = s.replace(/ดราย|ดาย|ดรัย|dry/gi, ' D ');
+        // 6. แปลงคำสั่งสถานะ HIT, D (ดราย), และ | (จุด)
+        const hitRx = new RegExp(buildRegexFromList(voiceDict.HIT), 'gi');
+        const dryRx = new RegExp(buildRegexFromList(voiceDict.DRY), 'gi');
+        const pipeRx = new RegExp(buildRegexFromList(voiceDict.PIPE), 'gi');
 
-        // 6. แปลง "จุด" เป็น | (ตัวคั่นชุดซ้าย-ขวา)
-        s = s.replace(/จุด/g, ' | ');
+        s = s.replace(hitRx, ' HIT ');
+        s = s.replace(dryRx, ' D ');
+        s = s.replace(pipeRx, ' | ');
 
-        // 7. จับคู่ตัวเลขที่ตามด้วย "ซ้าย" หรือ "ขวา" (บังคับซ้ายขวา เช่น "5 ซ้าย 10 ขวา" -> "5L 10R")
-        s = s.replace(/(\d+)\s*(?:ซ้าย|สาย)/g, ' $1L ');
-        s = s.replace(/(\d+)\s*(?:ขวา|ฝา)/g, ' $1R ');
+        // 7. แปลงตัวเลขที่มีซ้าย/ขวา ต่อท้าย เช่น "5 ซ้าย 10 ขวา" -> 5L 10R
+        const leftWords = buildRegexFromList(voiceDict.LEFT);
+        const rightWords = buildRegexFromList(voiceDict.RIGHT);
+        s = s.replace(new RegExp(`(\\d+)\\s*(?:${leftWords})`, 'gi'), ' $1L ');
+        s = s.replace(new RegExp(`(\\d+)\\s*(?:${rightWords})`, 'gi'), ' $1R ');
 
-        // 8. ดึงเฉพาะ Token ที่ถูกต้องตามกฎ (บังคับว่าตัวเลขที่ไม่ใช่ 0 หรือ 99xx ต้องมี L หรือ R กำกับเท่านั้น)
-        const validTokens = s.match(/(99(?:1[0-2]|[1-9])|HIT|N\/S|D|\||[1-9]\d*[LR]|\b0\b)/gi) || [];
+        // 8. ดึง Token ทั้งหมด (รองรับทั้ง 5L, 10R, 120/7, 9912, HIT, N/S, D, |, และผลปืนเลขล้วน 10, 12)
+        const validTokens = s.match(/(99(?:1[0-2]|[1-9])|OUT\/\d+|HIT|N\/S|D|\||\d+\/\d+|[1-9]\d*[LR]|\b\d+\b)/gi) || [];
 
         return {
             isClear: false,
-            code: validTokens.join(' ')
+            code: validTokens.join(' ').toUpperCase()
         };
     }
 
     // ==========================================
-    // 7. ระบบควบคุม Web Speech API สำหรับ PC
+    // 5. ระบบ Web Speech API (ดึง 5 ทางเลือก + โหมดคาลิเบรต)
     // ==========================================
     const micToggleBtn = document.getElementById('micToggleBtn');
     const voiceStatusText = document.getElementById('voiceStatusText');
     const inputBoxWrapper = document.getElementById('inputBoxWrapper');
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let calibratingTargetKey = null; // ถ้าไม่เป็น null แปลว่ากำลังอัดเสียงเพื่อคาลิเบรตปุ่มนั้นอยู่
 
     if (!SpeechRecognition) {
-        voiceStatusText.textContent = "เบราว์เซอร์ไม่รองรับระบบเสียง (แนะนำให้เปิดด้วย Google Chrome หรือ MS Edge บน PC)";
+        voiceStatusText.textContent = "เบราว์เซอร์ไม่รองรับระบบเสียง (แนะนำ Google Chrome หรือ MS Edge บน PC)";
         micToggleBtn.disabled = true;
     } else {
         const recognition = new SpeechRecognition();
         recognition.lang = 'th-TH';
         recognition.continuous = true;
         recognition.interimResults = true;
+        recognition.maxAlternatives = 5; // กวาดคำใกล้เคียง 5 อันดับแรกเพื่อแก้ปัญหาออกเสียงไม่ตรง
 
         let isListening = false;
         let manualStop = true;
 
-        micToggleBtn.addEventListener('click', () => {
+        function toggleMicrophone() {
             if (!isListening) {
                 manualStop = false;
-                recognition.start();
+                try { recognition.start(); } catch(e) {}
             } else {
                 manualStop = true;
                 recognition.stop();
             }
             rapidInput.focus();
+        }
+
+        micToggleBtn.addEventListener('click', toggleMicrophone);
+
+        // กดปุ่ม F2 บนคีย์บอร์ดเพื่อเปิด/ปิดไมค์ได้ทันที
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                toggleMicrophone();
+            }
         });
 
         recognition.onstart = () => {
             isListening = true;
             micToggleBtn.classList.add('active');
-            micToggleBtn.textContent = '🟢 กำลังฟังเสียง (คลิกเพื่อปิด)';
+            micToggleBtn.textContent = '🟢 กำลังฟังเสียง (F2 เพื่อปิด)';
             inputBoxWrapper.classList.add('listening-border');
-            voiceStatusText.textContent = 'พร้อมรับคำสั่งเสียง...';
+            voiceStatusText.textContent = 'กำลังฟังเสียงพูด...';
         };
 
         recognition.onresult = (event) => {
             let interimTranscript = '';
-            let finalTranscript = '';
 
             for (let i = event.resultIndex; i < event.results.length; i++) {
-                const transcript = event.results[i][0].transcript;
-                if (event.results[i].isFinal) {
-                    finalTranscript += transcript;
-                } else {
-                    interimTranscript += transcript;
+                const res = event.results[i];
+                if (!res.isFinal) {
+                    interimTranscript += res[0].transcript;
+                    continue;
                 }
-            }
 
-            // แสดงเสียงที่กำลังพูดแบบ Real-time บนแถบสถานะ
-            if (interimTranscript) {
-                voiceStatusText.textContent = `กำลังฟัง: "${interimTranscript}"`;
-            }
+                // กรณีอยู่ในโหมดกดปุ่ม "พูดเพื่อจำเสียง" ในหน้าต่างคาลิเบรต
+                if (calibratingTargetKey) {
+                    const heardWord = res[0].transcript.trim().replace(/\s+/g, '');
+                    addCalibratedWordToInput(calibratingTargetKey, heardWord);
+                    calibratingTargetKey = null;
+                    updateCalButtonsUI();
+                    continue;
+                }
 
-            // เมื่อพูดจบวรรค ให้นำไปแปลงเป็นรหัสใส่ช่อง rapidInput
-            if (finalTranscript) {
-                const result = parseVoiceToChandyCode(finalTranscript);
+                // กรณีใช้งานจริง: วนเช็คทั้ง 5 Alternatives ว่าตัวไหนแปลงเป็นรหัสได้สมบูรณ์ที่สุด
+                let bestResult = null;
+                let chosenTranscript = res[0].transcript.trim();
 
-                if (result.isClear) {
+                for (let a = 0; a < res.length; a++) {
+                    const candidateText = res[a].transcript.trim();
+                    const parsed = parseVoiceToChandyCode(candidateText);
+                    if (parsed.isClear || (parsed.code && parsed.code.length > 0)) {
+                        bestResult = parsed;
+                        chosenTranscript = candidateText;
+                        break;
+                    }
+                }
+
+                if (bestResult && bestResult.isClear) {
                     rapidInput.value = '';
                     processRapidInput();
-                    voiceStatusText.textContent = `ล้างหน้าจอเรียบร้อย ("${finalTranscript.trim()}")`;
-                } else if (result.code) {
-                    rapidInput.value = (rapidInput.value + ' ' + result.code).trim();
+                    voiceStatusText.textContent = `ล้างหน้าจอแล้ว (ได้ยิน: "${chosenTranscript}")`;
+                } else if (bestResult && bestResult.code) {
+                    rapidInput.value = (rapidInput.value + ' ' + bestResult.code).trim();
                     processRapidInput();
-                    voiceStatusText.textContent = `รับคำสั่ง: "${finalTranscript.trim()}" ➔ [${result.code}]`;
+                    voiceStatusText.textContent = `ได้ยิน: "${chosenTranscript}" ➔ [${bestResult.code}]`;
                 } else {
-                    voiceStatusText.textContent = `ไม่พบคำสั่งที่ตรงเงื่อนไข: "${finalTranscript.trim()}"`;
+                    voiceStatusText.textContent = `ได้ยินว่า "${chosenTranscript}" (หากเพี้ยน กดปุ่ม ⚙️ คาลิเบรตเสียงเพื่อสอนคำนี้)`;
                 }
+            }
+
+            if (interimTranscript && !calibratingTargetKey) {
+                voiceStatusText.textContent = `กำลังฟัง: "${interimTranscript}"`;
             }
         };
 
         recognition.onend = () => {
             if (!manualStop) {
-                // ต่ออายุไมค์อัตโนมัติบน PC เพื่อให้เปิดค้างไว้พูดได้ต่อเนื่องทั้งวัน
                 try { recognition.start(); } catch (e) {}
             } else {
                 isListening = false;
                 micToggleBtn.classList.remove('active');
-                micToggleBtn.textContent = '🎤 เปิดรับคำสั่งเสียง';
+                micToggleBtn.textContent = '🎤 เปิดไมค์ (หรือกด F2)';
                 inputBoxWrapper.classList.remove('listening-border');
                 voiceStatusText.textContent = 'ปิดไมโครโฟนแล้ว';
             }
         };
 
-        recognition.onerror = (event) => {
-            if (event.error !== 'no-speech') {
-                voiceStatusText.textContent = `ข้อผิดพลาดไมโครโฟน: ${event.error}`;
+        // ==========================================
+        // 6. ระบบจัดการหน้าต่าง Modal คาลิเบรตเสียง
+        // ==========================================
+        const calModal = document.getElementById('calModal');
+        const calRowsContainer = document.getElementById('calRowsContainer');
+
+        function renderCalibrationModal() {
+            calRowsContainer.innerHTML = calConfigMeta.map(item => `
+                <div class="cal-row">
+                    <div class="cal-label">
+                        ${item.title}
+                        <small>${item.desc}</small>
+                    </div>
+                    <input type="text" id="cal_in_${item.key}" class="cal-input" value="${voiceDict[item.key].join(', ')}">
+                    <button type="button" class="record-cal-btn" data-key="${item.key}">🎙️ พูดเพื่อจำเสียง</button>
+                </div>
+            `).join('');
+
+            calRowsContainer.querySelectorAll('.record-cal-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.getAttribute('data-key');
+                    if (calibratingTargetKey === key) {
+                        calibratingTargetKey = null;
+                    } else {
+                        calibratingTargetKey = key;
+                        // ถ้าไมค์ยังไม่เปิด ให้เปิดไมค์อัตโนมัติ
+                        if (!isListening) {
+                            manualStop = false;
+                            try { recognition.start(); } catch(e) {}
+                        }
+                    }
+                    updateCalButtonsUI();
+                });
+            });
+        }
+
+        function updateCalButtonsUI() {
+            calRowsContainer.querySelectorAll('.record-cal-btn').forEach(btn => {
+                const key = btn.getAttribute('data-key');
+                if (calibratingTargetKey === key) {
+                    btn.classList.add('recording');
+                    btn.textContent = '🔴 พูดคำนี้ได้เลย...';
+                } else {
+                    btn.classList.remove('recording');
+                    btn.textContent = '🎙️ พูดเพื่อจำเสียง';
+                }
+            });
+        }
+
+        function addCalibratedWordToInput(key, word) {
+            const inputEl = document.getElementById(`cal_in_${key}`);
+            if (!inputEl || !word) return;
+            const currentList = inputEl.value.split(',').map(s => s.trim()).filter(Boolean);
+            if (!currentList.includes(word)) {
+                currentList.unshift(word); // เอาคำที่เพิ่งพูดไว้หน้าสุด
+                inputEl.value = currentList.join(', ');
             }
-        };
+        }
+
+        document.getElementById('openCalBtn').addEventListener('click', () => {
+            renderCalibrationModal();
+            calModal.classList.add('show');
+        });
+
+        document.getElementById('closeCalBtn').addEventListener('click', () => {
+            calibratingTargetKey = null;
+            calModal.classList.remove('show');
+            rapidInput.focus();
+        });
+
+        document.getElementById('saveCalBtn').addEventListener('click', () => {
+            calConfigMeta.forEach(item => {
+                const inputEl = document.getElementById(`cal_in_${item.key}`);
+                if (inputEl) {
+                    voiceDict[item.key] = inputEl.value.split(',').map(s => s.trim()).filter(Boolean);
+                }
+            });
+            localStorage.setItem('chandy_voice_dict_v2', JSON.stringify(voiceDict));
+            calibratingTargetKey = null;
+            calModal.classList.remove('show');
+            voiceStatusText.textContent = '✅ บันทึกค่าคาลิเบรตเสียงลงเครื่องเรียบร้อยแล้ว';
+            rapidInput.focus();
+        });
+
+        document.getElementById('resetCalBtn').addEventListener('click', () => {
+            if (confirm('ต้องการคืนค่าคำศัพท์เริ่มต้นทั้งหมดใช่หรือไม่?')) {
+                voiceDict = JSON.parse(JSON.stringify(defaultVoiceDict));
+                localStorage.removeItem('chandy_voice_dict_v2');
+                renderCalibrationModal();
+            }
+        });
     }
 </script>
 </body>
