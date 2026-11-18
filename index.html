@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- ส่วนนี้คือ Meta Tag ที่ทำให้เว็บกลายเป็น App (ซ่อนแถบต่างๆ ของ Safari) เมื่อแอดลงหน้าจอโฮม -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Chandy Calc">
     
-    <title>Chandy Calculator</title>
+    <title>Chandy Calculator - Voice Command</title>
     <style>
         body { 
             margin: 0; padding: 0; 
@@ -21,14 +20,13 @@
             align-items: center; 
             justify-content: flex-start; 
             overflow: hidden; 
-            /* ป้องกันการเด้งหรือการเลื่อนหน้าจอที่ไม่ได้ตั้งใจใน iOS */
             overscroll-behavior-y: none;
         }
         
         /* กล่องบน: แสดงผลลัพธ์ใหญ่ๆ */
         .preview-container {
             width: 100%;
-            height: 50vh; /* ขยายพื้นที่โชว์ผลลัพธ์ให้กว้างขึ้น */
+            height: 55vh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -37,14 +35,12 @@
         }
 
         #previewText { 
-            /* จัดเรียงเป็นแนวตั้ง (Column) เพื่อให้ลูกระเบิดเรียงลงมาทีละบรรทัด */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 15px; /* ระยะห่างระหว่างลูก */
-            
-            font-size: clamp(30px, 10vw, 100px); /* ปรับขนาดฟอนต์ลงนิดหน่อยให้จุได้หลายบรรทัด */
+            gap: 15px;
+            font-size: clamp(30px, 10vw, 100px);
             font-weight: 900; 
             line-height: 1; 
             text-align: center; 
@@ -58,11 +54,54 @@
         .color-miss { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.8); }
         .color-score { color: #00e5ff; text-shadow: 0 0 25px rgba(0, 229, 255, 0.8); }
 
-        /* กล่องล่าง: สำหรับพิมพ์ค่า */
+        /* กล่องล่าง: สำหรับพิมพ์ค่าและควบคุมเสียง */
         .input-container {
             width: 95%;
-            max-width: 800px;
-            margin-top: 2vh; 
+            max-width: 850px;
+            margin-top: 1vh; 
+        }
+
+        /* แถบสถานะไมโครโฟน */
+        .voice-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            color: #fff;
+            font-family: Tahoma, sans-serif;
+        }
+
+        .mic-btn {
+            background: #ff3333;
+            color: #fff;
+            border: none;
+            padding: 10px 22px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .mic-btn.active {
+            background: #00c853;
+            box-shadow: 0 0 15px rgba(0, 200, 83, 0.7);
+        }
+
+        .voice-log {
+            font-size: 16px;
+            color: #90e0ef;
+            flex: 1;
+            margin-left: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .input-wrapper { 
@@ -73,6 +112,12 @@
             width: 100%; 
             box-sizing: border-box; 
             box-shadow: 0 0 20px rgba(0,229,255,0.6); 
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrapper.listening-border {
+            border-color: #00ff88;
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
         }
 
         #rapidInput { 
@@ -89,6 +134,18 @@
             text-transform: uppercase; 
             font-family: 'Courier New', Courier, monospace; 
         }
+
+        .voice-guide {
+            margin-top: 10px;
+            color: #8da9c4;
+            font-family: Tahoma, sans-serif;
+            font-size: 13px;
+            text-align: center;
+        }
+        .voice-guide span {
+            color: #00e5ff;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -98,15 +155,26 @@
         <div id="previewText"></div>
     </div>
 
-    <!-- กล่องพิมพ์ข้อมูล (จัดให้อยู่ถัดลงมา) -->
+    <!-- กล่องพิมพ์ข้อมูลและแถบเสียง -->
     <div class="input-container">
-        <div class="input-wrapper">
-            <input type="text" id="rapidInput" autocomplete="off" autofocus autocorrect="off" autocapitalize="off" spellcheck="false">
+        <div class="voice-bar">
+            <button id="micToggleBtn" class="mic-btn">🎤 เปิดรับคำสั่งเสียง</button>
+            <div id="voiceStatusText" class="voice-log">กดปุ่มเปิดไมค์เพื่อเริ่มสั่งงานด้วยเสียง...</div>
+        </div>
+
+        <div id="inputBoxWrapper" class="input-wrapper">
+            <input type="text" id="rapidInput" autocomplete="off" autofocus autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พูดหรือพิมพ์...">
+        </div>
+
+        <div class="voice-guide">
+            คำสั่งเสียง: <span>"ห้าซ้าย สิบขวา"</span> (5L 10R) | <span>"ศูนย์"</span> (0) | <span>"ฮิต"</span> (HIT) | <span>"โนสะปาร์ค"</span> (N/S) | <span>"เอาท์ทิศสิบสอง"</span> (OUT/12) | <span>"ดราย"</span> (D) | <span>"จุด"</span> (|) | <span>"เคลียร์"</span> (ล้างจอ)
         </div>
     </div>
 
 <script>
+    // ==========================================
     // 1. ฐานข้อมูลตารางคำนวณ (Core Engine)
+    // ==========================================
     const rawCSV = {
         "ขข": `0.0,0.0,5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,85.0\n,HIT,10 2,30/2,45/2,60/2,70/2,85/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,210/2,230/2,\n5.0,10 5,15 3,35/2,45/2,60/2,70/2,85/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,210/2,230/2,\n10.0,25 5,30 4,40/3,50/3,65/2,75/2,90/2,100/2,115/2,130/2,145/2,155/2,170/2,185/2,200/2,210/2,230/2,\n15.0,45/5,45/4,50/3,60/3,70/3,80/3,95/2,105/2,120/2,130/2,145/2,160/2,170/2,185/2,200/2,210/2,230/2,\n20.0,55/5,55/4,65/4,70/3,80/3,90/3,100/3,110/3,125/2,135/2,150/2,160/2,175/2,190/2,205/2,215/2,230/2,\n25.0,75/5,75/4,80/4,85/3,90/3,100/2,110/3,120/3,130/3,145/3,155/2,165/2,180/2,195/2,205/2,215/2,235/2,\n30.0,85/5,85/4,90/4,95/3,105/3,110/3,120/3,130/3,140/3,150/3,160/3,170/3,185/2,195/2,210/2,220/2,235/2,\n35.0,100/5,100/4,105/4,110/4,115/4,120/3,130/3,140/3,150/3,160/3,170/3,180/3,190/3,205/3,215/2,230/2,240/2,\n40.0,115/5,115/4,120/4,120/4,130/4,135/4,140/3,150/3,155/3,165/3,180/3,190/3,200/3,210/3,220/3,235/3,245/2,\n45.0,130/5,130/4,135/4,135/4,140/4,145/4,150/4,160/3,170/3,180/3,190/3,200/3,210/3,220/3,230/3,240/3,250/3,\n50.0,140/5,145/4,145/4,150/4,155/4,155/4,165/4,170/3,180/3,190/3,200/3,210/3,215/3,230/3,240/3,250/3,260/3,\n55.0,155/5,160/4,160/4,165/4,165/4,170/4,180/4,185/4,195/3,200/3,210/3,220/3,230/3,235/3,250/3,255/3,270/3,\n60.0,170/5,170/4,175/4,180/4,185/4,185/4,195/4,200/4,205/4,210/3,220/3,230/3,240/3,245/3,255/3,265/3,275/3,\n65.0,190/5,190/4,190/4,195/4,195/4,200/4,205/4,210/4,220/4,225/3,235/3,240/3,250/3,255/3,265/3,275/3,290/3,\n70.0,200/5,200/4,205/4,210/4,215/4,215/4,220/4,225/4,235/4,240/4,250/3,255/3,260/3,265/3,270/3,285/3,300/3,\n75.0,220/5,220/4,220/4,225/4,230/4,230/4,235/4,240/4,245/4,250/4,260/4,265/4,275/3,280/3,290/3,300/3,315/3,\n80.0,230/5,230/4,235/4,235/4,240/4,240/4,245/4,250/4,255/4,260/4,270/4,275/4,280/3,290/3,300/3,310/3,,\n85.0,250/5,250/4,250/4,255/4,255/4,255/4,260/4,265/4,270/4,275/4,285/4,200/4,300/4,305/3,310/3,320/3,`,
         "ขซ": `0.0,0.0,5.0,10.0,15.0,20.0,25.0,30.0,35.0,40.0,45.0,50.0,55.0,60.0,65.0,70.0,75.0,80.0,85.0\n,HIT,10 8,25 8,40/8,50/8,65/8,80/8,95/8,110/8,120/8,135/8,150/8,160/8,180/8,190/8,210/8,220/8,\n5.0,10 5,15 6,30 6,45/7,55/7,70/7,80/7,95/7,110/7,120/7,135/7,150/7,160/7,180/7,190/7,210/7,220/7,\n10.0,25 5,30 6,35/6,50/6,55/7,75/7,85/7,105/7,110/7,125/7,140/7,155/7,165/7,180/7,195/7,210/7,225/7,\n15.0,45/5,45/5,50/6,60/6,70/6,80/6,90/7,105/7,115/7,130/7,140/7,155/7,165/7,185/7,195/7,210/7,225/7,\n20.0,55/5,55/5,60/5,70/6,75/6,85/6,100/6,110/7,120/7,135/7,145/7,160/7,170/7,185/7,195/7,215/7,225/7,\n25.0,75/5,75/5,80/5,85/6,90/6,95/6,105/6,120/6,130/6,140/7,150/7,165/7,175/7,190/7,200/7,215/7,230/7,\n30.0,85/5,85/5,90/5,95/5,100/5,110/6,115/6,125/6,135/6,145/6,155/6,170/7,180/7,195/7,205/7,220/7,235/7,\n35.0,100/5,105/5,105/5,110/5,115/5,120/6,125/6,135/6,145/6,155/6,165/6,180/6,190/6,200/7,210/7,225/7,235/7,\n40.0,115/5,115/5,115/5,120/5,125/5,130/6,135/6,145/6,155/6,165/6,170/6,185/6,195/6,210/6,215/7,235/7,240/7,\n45.0,130/5,130/5,130/5,135/5,140/5,145/5,150/6,160/6,165/6,175/6,185/6,195/6,205/6,215/6,225/6,240/6,250/6,\n50.0,145/5,145/5,145/5,145/5,150/5,155/5,160/6,165/6,175/6,185/6,195/6,205/6,210/6,220/6,230/6,245/6,255/6,\n55.0,155/5,155/5,160/5,160/5,165/5,170/5,175/5,180/6,190/6,195/6,205/6,215/6,220/6,230/6,240/6,250/6,260/6,\n60.0,170/5,170/5,170/5,175/5,180/5,185/5,185/5,195/6,200/6,205/6,215/6,220/6,230/6,240/6,250/6,260/6,270/6,\n65.0,190/5,190/5,190/5,190/5,195/5,195/5,200/5,205/5,215/6,220/6,225/6,235/6,240/6,250/6,260/6,270/6,275/6,\n70.0,200/5,200/5,205/5,205/5,205/5,210/5,215/5,220/5,225/5,230/6,235/6,245/6,250/6,260/6,265/6,275/6,285/6,\n75.0,215/5,215/5,215/5,200/5,200/5,225/5,230/5,235/5,240/5,245/6,250/6,255/6,260/6,270/6,275/6,285/6,295/6,\n80.0,230/5,230/5,230/5,230/5,235/5,235/5,240/5,245/5,250/5,255/5,260/6,265/6,270/6,280/6,285/6,295/6,305/6,\n85.0,245/5,245/5,245/5,250/5,250/5,255/5,255/5,260/5,260/5,265/5,270/6,280/6,285/6,290/6,300/6,305/6,310/6,\n90.0,260/5,260/5,260/5,260/5,260/5,265/5,265/5,270/5,275/5,280/5,285/5,290/6,295/6,300/6,310/6,315/6,320/6`,
@@ -178,7 +246,6 @@
             let rC = p[1].match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|N\/S|\-|\+|\d+\/\d*|HIT|D|[1-9]\d*[LR]?|0)/g)||[];
             let mL = Math.max(lC.length, rC.length);
             
-            // จับคู่ตัวซ้ายและขวาตามลำดับ
             for(let i=0; i<mL; i++) {
                 d.push(`${lC[i]||'-'} ${rC[i]||'-'}`.replace(/\s{2,}/g,' ').trim());
             }
@@ -219,19 +286,18 @@
     const rapidInput = document.getElementById('rapidInput');
     const preview = document.getElementById('previewText');
 
-    rapidInput.addEventListener('input', function() {
-        let raw = this.value.toUpperCase();
+    function processRapidInput() {
+        let raw = rapidInput.value.toUpperCase();
         
-        // กฎการแปลงค่า (รองรับวงเล็บแบบที่ขอ)
-        raw = raw.replace(/\./g, '|'); // แยก drop (multi)
+        raw = raw.replace(/\./g, '|');
         raw = raw.replace(/\//g, 'L');
         raw = raw.replace(/\*/g, 'R');
-        raw = raw.replace(/\(/g, 'L'); // ( = ซ้าย
-        raw = raw.replace(/\)/g, 'R'); // ) = ขวา
+        raw = raw.replace(/\(/g, 'L');
+        raw = raw.replace(/\)/g, 'R');
         
         let tokens = raw.match(/(99(?:1[0-2]|[1-9])?|OUT\/\d*|HIT|N\/S|D|\-|\+|\d+\/\d*|0|[1-9]\d*[LR]?|\|)/gi) || [];
         let rV = tokens.join(' ');
-        this.value = rV;
+        rapidInput.value = rV;
 
         if(!rV.trim()){ 
             preview.innerHTML = ''; 
@@ -241,7 +307,6 @@
         let R = parseInputString(rV);
 
         if (R.parsedDrops.length > 0) {
-            // สร้างเป็นบล็อก <div> เรียงลงมาเป็นแนวตั้ง
             let visualResult = R.parsedDrops.map(x => {
                 let p = x.parsed;
                 if(p.includes('HIT')) return '<div class="color-hit">HIT</div>';
@@ -254,11 +319,12 @@
         } else {
             preview.innerHTML = '';
         }
-    });
+    }
+
+    rapidInput.addEventListener('input', processRapidInput);
 
     rapidInput.addEventListener('keydown', function(e) {
         if(e.key === 'Enter') {
-            // ล้างหน้าจอเมื่อกด Enter
             this.value = '';
             preview.innerHTML = '';
         }
@@ -266,6 +332,169 @@
 
     rapidInput.focus();
 
+    // ==========================================
+    // 6. ระบบแปลงคำพูดภาษาไทยเป็นรหัส Chandy (Voice Parser)
+    // ==========================================
+    function convertThaiWordsToDigits(text) {
+        let s = text;
+        // แปลงคำบอกจำนวนหลักสิบและตัวเลขไทยเป็นอารบิก (เรียงจากคำยาวไปสั้นเพื่อความแม่นยำ)
+        const numRules = [
+            [/เก้าสิบห้า/g, '95'], [/เก้าสิบ/g, '90'],
+            [/แปดสิบห้า/g, '85'], [/แปดสิบ/g, '80'],
+            [/เจ็ดสิบห้า/g, '75'], [/เจ็ดสิบ/g, '70'],
+            [/หกสิบห้า/g, '65'], [/หกสิบ/g, '60'],
+            [/ห้าสิบห้า/g, '55'], [/ห้าสิบ/g, '50'],
+            [/สี่สิบห้า/g, '45'], [/สี่สิบ/g, '40'],
+            [/สามสิบห้า/g, '35'], [/สามสิบ/g, '30'],
+            [/ยี่สิบห้า/g, '25'], [/ยี่สิบ/g, '20'],
+            [/สิบสอง/g, '12'], [/สิบเอ็ด/g, '11'], [/สิบห้า/g, '15'],
+            [/สิบเก้า/g, '19'], [/สิบแปด/g, '18'], [/สิบเจ็ด/g, '17'],
+            [/สิบหก/g, '16'], [/สิบสี่/g, '14'], [/สิบสาม/g, '13'],
+            [/สิบ/g, '10'],
+            [/เก้า/g, '9'], [/แปด/g, '8'], [/เจ็ด/g, '7'], [/หก/g, '6'],
+            [/ห้า/g, '5'], [/สี่/g, '4'], [/สาม/g, '3'], [/สอง/g, '2'],
+            [/หนึ่ง/g, '1'], [/ศูนย์/g, '0']
+        ];
+        for (const [pattern, replacement] of numRules) {
+            s = s.replace(pattern, replacement);
+        }
+        return s;
+    }
+
+    function parseVoiceToChandyCode(transcript) {
+        let s = transcript.trim();
+
+        // ตรวจจับคำสั่ง "เคลียร์" เพื่อล้างหน้าจอ
+        if (/เคลียร์|เคียร์|คลียร์|clear/i.test(s)) {
+            return { isClear: true, code: '' };
+        }
+
+        // 1. แปลงคำเรียกตัวเลขเป็นตัวเลขอารบิกก่อน
+        s = convertThaiWordsToDigits(s);
+
+        // 2. แปลงคำว่า "เอาท์ทิศ..." หรือ "เอาท์..." ตามด้วยเลข 1-12 เป็นรหัส 99xx (เช่น เอาท์ทิศสิบสอง -> 9912)
+        s = s.replace(/(?:เอาท์|เอาต์|เอ้าท์|เอ้า|เอ๊าท์|out)\s*(?:ทิศ)?\s*(1[0-2]|[1-9])/gi, ' 99$1 ');
+
+        // 3. แปลง "โนสะปาร์ค" (รวมคำพ้องเสียงที่ Web Speech API มักถอดออกมา) เป็น N/S
+        s = s.replace(/โน\s*ส[ะป]?ปา[ร์คก]*|โน\s*สปาร์ค|โน\s*สปาก|no\s*spark|เอ็น\s*เอส/gi, ' N/S ');
+
+        // 4. แปลง "ฮิต" เป็น HIT
+        s = s.replace(/ฮิต|ฮิช|ฮิด|hit/gi, ' HIT ');
+
+        // 5. แปลง "ดราย" เป็น D
+        s = s.replace(/ดราย|ดาย|ดรัย|dry/gi, ' D ');
+
+        // 6. แปลง "จุด" เป็น | (ตัวคั่นชุดซ้าย-ขวา)
+        s = s.replace(/จุด/g, ' | ');
+
+        // 7. จับคู่ตัวเลขที่ตามด้วย "ซ้าย" หรือ "ขวา" (บังคับซ้ายขวา เช่น "5 ซ้าย 10 ขวา" -> "5L 10R")
+        s = s.replace(/(\d+)\s*(?:ซ้าย|สาย)/g, ' $1L ');
+        s = s.replace(/(\d+)\s*(?:ขวา|ฝา)/g, ' $1R ');
+
+        // 8. ดึงเฉพาะ Token ที่ถูกต้องตามกฎ (บังคับว่าตัวเลขที่ไม่ใช่ 0 หรือ 99xx ต้องมี L หรือ R กำกับเท่านั้น)
+        const validTokens = s.match(/(99(?:1[0-2]|[1-9])|HIT|N\/S|D|\||[1-9]\d*[LR]|\b0\b)/gi) || [];
+
+        return {
+            isClear: false,
+            code: validTokens.join(' ')
+        };
+    }
+
+    // ==========================================
+    // 7. ระบบควบคุม Web Speech API สำหรับ PC
+    // ==========================================
+    const micToggleBtn = document.getElementById('micToggleBtn');
+    const voiceStatusText = document.getElementById('voiceStatusText');
+    const inputBoxWrapper = document.getElementById('inputBoxWrapper');
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        voiceStatusText.textContent = "เบราว์เซอร์ไม่รองรับระบบเสียง (แนะนำให้เปิดด้วย Google Chrome หรือ MS Edge บน PC)";
+        micToggleBtn.disabled = true;
+    } else {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'th-TH';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        let isListening = false;
+        let manualStop = true;
+
+        micToggleBtn.addEventListener('click', () => {
+            if (!isListening) {
+                manualStop = false;
+                recognition.start();
+            } else {
+                manualStop = true;
+                recognition.stop();
+            }
+            rapidInput.focus();
+        });
+
+        recognition.onstart = () => {
+            isListening = true;
+            micToggleBtn.classList.add('active');
+            micToggleBtn.textContent = '🟢 กำลังฟังเสียง (คลิกเพื่อปิด)';
+            inputBoxWrapper.classList.add('listening-border');
+            voiceStatusText.textContent = 'พร้อมรับคำสั่งเสียง...';
+        };
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript;
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            // แสดงเสียงที่กำลังพูดแบบ Real-time บนแถบสถานะ
+            if (interimTranscript) {
+                voiceStatusText.textContent = `กำลังฟัง: "${interimTranscript}"`;
+            }
+
+            // เมื่อพูดจบวรรค ให้นำไปแปลงเป็นรหัสใส่ช่อง rapidInput
+            if (finalTranscript) {
+                const result = parseVoiceToChandyCode(finalTranscript);
+
+                if (result.isClear) {
+                    rapidInput.value = '';
+                    processRapidInput();
+                    voiceStatusText.textContent = `ล้างหน้าจอเรียบร้อย ("${finalTranscript.trim()}")`;
+                } else if (result.code) {
+                    rapidInput.value = (rapidInput.value + ' ' + result.code).trim();
+                    processRapidInput();
+                    voiceStatusText.textContent = `รับคำสั่ง: "${finalTranscript.trim()}" ➔ [${result.code}]`;
+                } else {
+                    voiceStatusText.textContent = `ไม่พบคำสั่งที่ตรงเงื่อนไข: "${finalTranscript.trim()}"`;
+                }
+            }
+        };
+
+        recognition.onend = () => {
+            if (!manualStop) {
+                // ต่ออายุไมค์อัตโนมัติบน PC เพื่อให้เปิดค้างไว้พูดได้ต่อเนื่องทั้งวัน
+                try { recognition.start(); } catch (e) {}
+            } else {
+                isListening = false;
+                micToggleBtn.classList.remove('active');
+                micToggleBtn.textContent = '🎤 เปิดรับคำสั่งเสียง';
+                inputBoxWrapper.classList.remove('listening-border');
+                voiceStatusText.textContent = 'ปิดไมโครโฟนแล้ว';
+            }
+        };
+
+        recognition.onerror = (event) => {
+            if (event.error !== 'no-speech') {
+                voiceStatusText.textContent = `ข้อผิดพลาดไมโครโฟน: ${event.error}`;
+            }
+        };
+    }
 </script>
 </body>
 </html>
