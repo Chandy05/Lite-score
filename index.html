@@ -7,8 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Chandy Calc">
+    <meta name="theme-color" content="#0d1b2a">
     
-    <title>Chandy Calculator - Heuristic Voice Engine</title>
+    <title>Chandy Calculator - Offline Ready & Fixed 150/7</title>
     <style>
         body { 
             margin: 0; padding: 0; 
@@ -90,11 +91,21 @@
         .cal-btn { background: #3a506b; color: #fff; }
         .cal-btn:hover { background: #5bc0be; color: #000; }
 
+        .net-badge {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .net-online { background: rgba(0, 200, 83, 0.2); color: #00ff88; border: 1px solid #00c853; }
+        .net-offline { background: rgba(255, 183, 3, 0.2); color: #ffb703; border: 1px solid #ffb703; }
+
         .voice-log {
-            font-size: 15px;
+            font-size: 14px;
             color: #90e0ef;
             flex: 1;
-            margin: 0 8px;
+            margin: 0 6px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -141,7 +152,6 @@
         }
         .voice-guide span { color: #00e5ff; font-weight: bold; }
 
-        /* แถบแสดงคำที่ได้ยินล่าสุด เพื่อให้กดสอนระบบได้ในคลิกเดียว */
         .quick-teach-bar {
             display: flex;
             align-items: center;
@@ -168,7 +178,6 @@
             font-weight: bold;
         }
 
-        /* Modal คาลิเบรตเสียง */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -232,10 +241,7 @@
             font-weight: bold;
             font-size: 13px;
         }
-        .record-cal-btn.recording {
-            background: #ffb703;
-            color: #000;
-        }
+        .record-cal-btn.recording { background: #ffb703; color: #000; }
         .modal-footer {
             display: flex;
             justify-content: space-between;
@@ -254,7 +260,8 @@
     <div class="input-container">
         <div class="voice-bar">
             <button id="micToggleBtn" class="btn mic-btn">🎤 เปิดไมค์ (F2)</button>
-            <div id="voiceStatusText" class="voice-log">พร้อมรับคำสั่งเสียง (มีระบบแก้คำเพี้ยน 13➔10L, 50 7➔50/7 อัตโนมัติ)</div>
+            <span id="netStatusBadge" class="net-badge net-online">ONLINE</span>
+            <div id="voiceStatusText" class="voice-log">พร้อมใช้งาน — ทดสอบ "150 ทิศ 7" ได้ผลลัพธ์ 150/7</div>
             <button id="openCalBtn" class="btn cal-btn">⚙️ คาลิเบรตเสียง</button>
         </div>
 
@@ -262,7 +269,6 @@
             <input type="text" id="rapidInput" autocomplete="off" autofocus autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พูดหรือพิมพ์...">
         </div>
 
-        <!-- แถบสอนคำด่วน (Quick Teach): ถ้าพูดแล้วเพี้ยน กดปุ่มด้านล่างเพื่อผูกคำที่ได้ยินล่าสุดเข้ากับรหัสทันที -->
         <div class="quick-teach-bar">
             <span>ถ้าคำที่ได้ยินล่าสุดเพี้ยน กดผูกคำด่วน:</span>
             <button class="teach-chip" data-teach="OUT">สอนเป็น OUT/ทิศ</button>
@@ -273,12 +279,11 @@
         </div>
 
         <div class="voice-guide">
-            พิกัด (ลงท้าย 0, 5): <span>"สิบซ้าย"</span> (แม้ไมค์ได้ยินเป็น 13 ระบบจะแก้เป็น <b>10L</b> ให้เอง) | ระยะ/ทิศ: <span>"ห้าสิบทิศเจ็ด"</span> (<b>50/7</b>) <br>
-            ผลปืน: <span>"สิบ"</span> (10), <span>"สิบสอง"</span> (12) | สถานะ: <span>"เอาท์ทิศสาม"</span> (OUT/3) | <span>"โนสะปาร์ค"</span> (N/S) | <span>"ดราย"</span> (D) | <span>"เคลียร์"</span> (ล้างจอ)
+            พิกัด: <span>"สิบซ้าย"</span> (10L) | ระยะ/ทิศ: <span>"150 ทิศ 7"</span> (<b>150/7</b>) | ผลปืน: <span>"สิบ"</span> (10), <span>"สิบสอง"</span> (12) <br>
+            สถานะ: <span>"เอาท์ทิศสาม"</span> (OUT/3) | <span>"โนสะปาร์ค"</span> (N/S) | <span>"ดราย"</span> (D) | <span>"เคลียร์"</span> (ล้างจอ)
         </div>
     </div>
 
-    <!-- Modal คาลิเบรตเสียง -->
     <div id="calModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
@@ -286,7 +291,7 @@
                 <button id="closeCalBtn" class="btn" style="background:#415a77;color:#fff;padding:6px 12px;">✕ ปิด</button>
             </div>
             <p style="font-size:13px; color:#ccc; margin-top:0;">
-                สำหรับคำว่า <b>เอาท์ทิศ</b> สามารถพูดว่า <i>"เอาท์ทิศสาม"</i> ตอนคาลิเบรตได้เลย ระบบจะตัดเลข 3 ออกและจำเฉพาะคำนำหน้า เพื่อให้ใช้ได้กับทุกทิศ 1–12
+                สำหรับคำว่า <b>เอาท์ทิศ</b> สามารถพูดว่า <i>"เอาท์ทิศสาม"</i> ตอนคาลิเบรตได้เลย ระบบจะตัดเลข 3 ออกและจำเฉพาะคำนำหน้า
             </p>
             <div id="calRowsContainer"></div>
             <div class="modal-footer">
@@ -297,6 +302,38 @@
     </div>
 
 <script>
+    // ==========================================
+    // 0. ระบบแคชหน้าเว็บสำหรับใช้งานออฟไลน์ (Service Worker)
+    // ==========================================
+    function updateNetworkBadge() {
+        const badge = document.getElementById('netStatusBadge');
+        if (navigator.onLine) {
+            badge.textContent = 'ONLINE';
+            badge.className = 'net-badge net-online';
+        } else {
+            badge.textContent = 'OFFLINE (Local)';
+            badge.className = 'net-badge net-offline';
+        }
+    }
+    window.addEventListener('online', updateNetworkBadge);
+    window.addEventListener('offline', updateNetworkBadge);
+    updateNetworkBadge();
+
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        const swCode = `
+            const CACHE_NAME = 'chandy-calc-offline-v1';
+            self.addEventListener('install', e => {
+                e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./', location.href])));
+                self.skipWaiting();
+            });
+            self.addEventListener('fetch', e => {
+                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./'))));
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+    }
+
     // ==========================================
     // 1. ฐานข้อมูลตารางคำนวณ (Core Engine)
     // ==========================================
@@ -443,7 +480,7 @@
     rapidInput.focus();
 
     // ==========================================
-    // 2. คลังคำศัพท์คาลิเบรตเสียง (ขยายคำพ้องเสียงครบวงจร)
+    // 2. คลังคำศัพท์คาลิเบรตเสียง
     // ==========================================
     const defaultVoiceDict = {
         CLEAR: ["เคลียร์", "เคียร์", "คลียร์", "เขี่ย", "เฮีย", "เพลีย", "เสีย", "เมีย", "เชียร์", "เลีย", "เบียร์", "เกียร์", "clear", "ลบ", "ล้าง"],
@@ -462,7 +499,7 @@
         { key: 'NS',    title: 'โนสะปาร์ค (N/S)',   desc: 'คำเรียกเมื่อไม่เห็นควัน/ประกายไฟ' },
         { key: 'DRY',   title: 'ดราย (D)',          desc: 'คำเรียกเมื่อลูกด้าน เช่น ดราย, ดาย, ได้' },
         { key: 'HIT',   title: 'ฮิต (HIT)',         desc: 'คำเรียกเมื่อเข้าเป้า เช่น ฮิต, คิด, ติด' },
-        { key: 'DIR',   title: 'ทิศ / ทับ (/)',     desc: 'ตัวคั่นระยะกับทิศ เช่น 50 ทิศ 7 -> 50/7' },
+        { key: 'DIR',   title: 'ทิศ / ทับ (/)',     desc: 'ตัวคั่นระยะกับทิศ เช่น 150 ทิศ 7 -> 150/7' },
         { key: 'LEFT',  title: 'ซ้าย (L)',          desc: 'คำบอกฝั่งซ้าย เช่น ซ้าย, สาย' },
         { key: 'RIGHT', title: 'ขวา (R)',           desc: 'คำบอกฝั่งขวา เช่น ขวา, ฝา' },
         { key: 'PIPE',  title: 'จุด (|)',           desc: 'ตัวคั่นชุดซ้าย-ขวา เวลาพูดหลายลูก' },
@@ -474,7 +511,6 @@
             const saved = localStorage.getItem('chandy_voice_dict_v3');
             if (saved) {
                 let parsed = JSON.parse(saved);
-                // รวมคำเริ่มต้นเข้ากับคำที่ผู้ใช้เคยเซฟไว้
                 let merged = {};
                 for (let k in defaultVoiceDict) {
                     merged[k] = Array.from(new Set([...(parsed[k] || []), ...defaultVoiceDict[k]]));
@@ -515,7 +551,6 @@
     }
 
     function convertAllThaiNumbers(text) {
-        // แปลงเลขไทย ๐-๙ เป็น 0-9 ก่อน
         const thDigits = ['๐','๑','๒','๓','๔','๕','๖','๗','๘','๙'];
         thDigits.forEach((d, idx) => { text = text.replace(new RegExp(d, 'g'), idx.toString()); });
 
@@ -533,7 +568,7 @@
     }
 
     // ==========================================
-    // 4. HEURISTIC VOICE ENGINE (แก้ปัญหา 13->10L, 50 7->50/7, และ OUT/3)
+    // 4. HEURISTIC VOICE ENGINE (แก้ลำดับ [ระยะ] ทิศ [ทิศ] ก่อน OUT/)
     // ==========================================
     function parseVoiceToChandyCode(transcript) {
         let s = transcript.trim().toLowerCase();
@@ -552,53 +587,43 @@
         // 3. แปลงคำตัวเลขไทยเป็นอารบิกทั้งหมด
         s = convertAllThaiNumbers(s);
 
-        // 4. ดักจับกลุ่ม "เอาท์ทิศ [1-12]" แบบยืดหยุ่นสูง (แก้ปัญหา OUT/3 ไม่ติด)
-        const outWords = buildRegexFromList(voiceDict.OUT);
         const dirWords = buildRegexFromList(voiceDict.DIR);
-        // 4.1 ดักจากคลังคำศัพท์ OUT + (คำเชื่อมใดๆ ไม่เกิน 4 ตัวอักษร) + เลข 1-12
-        const outRx1 = new RegExp(`(?:${outWords})\\s*(?:${dirWords}|[ก-๙]{0,4})?\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi');
-        s = s.replace(outRx1, ' 99$1 ');
-        // 4.2 ดักกรณีเริ่มต้นประโยคด้วยคำใดๆ + "ที่/ทิศ [1-12]" (เช่น "วันที่ 3", "เอาที่ 3", "อาทิตย์ที่ 3" ที่ไม่มีตัวเลขระยะนำหน้า)
-        s = s.replace(/(?:^|\s)(?!\d)(?:[ก-๙a-z]{1,8})?(?:ทิศ|ทิด|ที่|ที|ฟิศ|ฟิต)\s*(1[0-2]|[1-9])(?!\d)/gi, ' 99$1 ');
-
-        // 5. แปลงคำสั่งซ้าย/ขวาปกติ เช่น "10 ซ้าย" -> 10L, "15 ขวา" -> 15R
+        const outWords = buildRegexFromList(voiceDict.OUT);
         const leftWords = buildRegexFromList(voiceDict.LEFT);
         const rightWords = buildRegexFromList(voiceDict.RIGHT);
+
+        // 4. [สำคัญ] แปลง "[ระยะ] ทิศ [1-12]" หรือ "[ระยะ] ทับ [1-12]" เช่น "150 ทิศ 7" -> "150/7" ก่อนกฎ OUT/
+        const slashRx = new RegExp(`(\\d+)\\s*(?:${dirWords}|\\/)\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi');
+        s = s.replace(slashRx, ' $1/$2 ');
+
+        // 5. แปลงคำสั่งซ้าย/ขวา เช่น "10 ซ้าย" -> 10L, "15 ขวา" -> 15R
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${leftWords})`, 'gi'), ' $1L ');
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${rightWords})`, 'gi'), ' $1R ');
 
-        // 6. แปลง "[ระยะ] ทิศ [1-12]" กรณีที่ติดคำว่า ทิศ/ทับ/ที่ มาด้วย
-        const slashRx = new RegExp(`(\\d+)\\s*(?:${dirWords}|\\/)\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi');
-        s = s.replace(slashRx, ' $1/$2 ');
+        // 6. ดักจับกลุ่ม "เอาท์ทิศ [1-12]" -> 99xx (ต้องไม่มีตัวเลขระยะนำหน้า)
+        const outRx1 = new RegExp(`(?:^|\\s)(?:${outWords})\\s*(?:${dirWords})?\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi');
+        s = s.replace(outRx1, ' 99$1 ');
 
         // 7. แปลงคำสถานะ HIT, D (ดราย), | (จุด)
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.HIT), 'gi'), ' HIT ');
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.DRY), 'gi'), ' D ');
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.PIPE), 'gi'), ' | ');
 
-        // =========================================================
         // 8. กฎเหล็กแก้คำเพี้ยนตัวเลข (Step 5/10 & Distance/Clock Heuristics)
-        // =========================================================
-        // ดึง Token เบื้องต้นออกมาก่อน
         let rawTokens = s.match(/(99(?:1[0-2]|[1-9])|OUT\/\d+|HIT|N\/S|D|\||\d+\/\d+|\d+[LR]|\d+)/gi) || [];
 
-        // กรณีพูดตัวเลขเดี่ยวๆ เพียงตัวเดียว เช่น "10" หรือ "12" (ผลปืน) -> อนุญาตให้ผ่านได้เลย
         if (rawTokens.length === 1 && /^\d+$/.test(rawTokens[0])) {
             let num = parseInt(rawTokens[0], 10);
-            // ยกเว้นถ้าพูด "สิบซ้าย" คำเดียวแล้วไมค์รวบเป็น "13", "23", "33"... ให้แปลงเป็น 10L, 20L, 30L
             if (num >= 13 && num <= 93 && num % 10 === 3) {
                 return { isClear: false, code: `${num - 3}L` };
             }
-            // หรือถ้ารวบคำว่า "50 ทิศ 7" เป็น "507" หรือ "120 ทิศ 7" เป็น "1207"
             let splitSlash = trySplitMergedDistanceClock(rawTokens[0]);
             if (splitSlash) {
                 return { isClear: false, code: splitSlash };
             }
-            // ถ้าเป็นผลปืน เช่น 10, 12 ส่งออกตามจริง
             return { isClear: false, code: rawTokens[0] };
         }
 
-        // กรณีมีหลาย Token หรือเป็นชุดคำสั่งพิกัด/ระยะทิศ
         let processedTokens = [];
         for (let i = 0; i < rawTokens.length; i++) {
             let tk = rawTokens[i].toUpperCase();
@@ -606,30 +631,27 @@
             if (/^\d+$/.test(tk)) {
                 let num = parseInt(tk, 10);
 
-                // กฎ A: ตรวจจับเลขที่รวบ "10 ซ้าย" เป็น "13", "20 ซ้าย" เป็น "23" (ลงท้ายด้วย 3 หรือ 4)
                 if (num >= 13 && num <= 94 && (num % 10 === 3 || num % 10 === 4)) {
                     let baseTen = Math.floor(num / 10) * 10;
                     processedTokens.push(`${baseTen}L`);
                     continue;
                 }
-                // ถ้าพูด "ห้าซ้าย" แล้วเพี้ยนเป็น "53"
                 if (num === 53 || num === 54) {
                     processedTokens.push(`5L`);
                     continue;
                 }
 
-                // กฎ B: ตรวจจับกรณี "50 ทิศ 7" ที่คำว่าทิศหายไป กลายเป็นเลข 2 ตัวเรียงกัน ["50", "7"]
+                // กรณีเลข 2 ชุดเรียงกัน เช่น "150 7" -> "150/7"
                 if (i + 1 < rawTokens.length && /^\d+$/.test(rawTokens[i + 1])) {
                     let nextNum = parseInt(rawTokens[i + 1], 10);
-                    // ถ้าตัวหน้าหาร 5 ลงตัว (10 ถึง 350) และตัวหลังคือเลขทิศนาฬิกา (1 ถึง 12)
                     if (num >= 10 && num <= 350 && num % 5 === 0 && nextNum >= 1 && nextNum <= 12) {
                         processedTokens.push(`${num}/${nextNum}`);
-                        i++; // ข้ามตัวถัดไปเพราะรวมเป็น / แล้ว
+                        i++;
                         continue;
                     }
                 }
 
-                // กฎ C: ตรวจจับกรณี "50 ทิศ 7" ถูกรวบติดกันเป็นก้อนเดียว เช่น "507" หรือ "1207"
+                // กรณีเลขรวบติดกัน เช่น "1507" -> "150/7"
                 let splitSlash = trySplitMergedDistanceClock(tk);
                 if (splitSlash) {
                     processedTokens.push(splitSlash);
@@ -646,13 +668,10 @@
         };
     }
 
-    // ฟังก์ชันแยกตัวเลขที่ถูกรวบติดกัน เช่น "507" -> "50/7", "1207" -> "120/7", "15012" -> "150/12"
     function trySplitMergedDistanceClock(numStr) {
         let fullVal = parseInt(numStr, 10);
-        // ถ้าเลขนั้นหาร 5 ลงตัวอยู่แล้ว และไม่เกิน 350 (เช่น 50, 100, 120) ไม่ต้องแยก
         if (fullVal <= 350 && fullVal % 5 === 0) return null;
 
-        // ลองตัด 2 หลักท้ายเป็นทิศ (10, 11, 12) ก่อน
         if (numStr.length >= 4) {
             let dist2 = parseInt(numStr.slice(0, -2), 10);
             let clk2 = parseInt(numStr.slice(-2), 10);
@@ -660,7 +679,6 @@
                 return `${dist2}/${clk2}`;
             }
         }
-        // ลองตัด 1 หลักท้ายเป็นทิศ (1 ถึง 9)
         if (numStr.length >= 3) {
             let dist1 = parseInt(numStr.slice(0, -1), 10);
             let clk1 = parseInt(numStr.slice(-1), 10);
@@ -671,7 +689,6 @@
         return null;
     }
 
-    // ฟังก์ชันทำความสะอาดคำคาลิเบรต (ตัดตัวเลขท้ายคำออก เช่น พูด "อาทิตย์ 3" เหลือแค่ "อาทิตย์")
     function cleanCalibratedWord(rawWord, key) {
         let w = convertAllThaiNumbers(rawWord).trim().toLowerCase();
         if (key === 'OUT' || key === 'DIR' || key === 'LEFT' || key === 'RIGHT') {
@@ -744,7 +761,6 @@
                 const primaryTranscript = res[0].transcript.trim();
                 lastHeardRawText = primaryTranscript;
 
-                // กรณีอยู่ในหน้าต่างคาลิเบรตเสียง
                 if (calibratingTargetKey) {
                     const cleaned = cleanCalibratedWord(primaryTranscript, calibratingTargetKey);
                     addCalibratedWordToInput(calibratingTargetKey, cleaned || primaryTranscript.replace(/\s+/g, ''));
@@ -753,7 +769,6 @@
                     continue;
                 }
 
-                // วนเช็คทั้ง 5 Alternatives โดยให้คะแนนตัวที่ได้รหัสครบถ้วนที่สุด
                 let bestResult = null;
                 let chosenTranscript = primaryTranscript;
 
@@ -780,7 +795,7 @@
                     processRapidInput();
                     voiceStatusText.textContent = `ได้ยิน: "${chosenTranscript}" ➔ แปลงเป็น [${bestResult.code}]`;
                 } else {
-                    voiceStatusText.textContent = `ได้ยินว่า "${primaryTranscript}" (กดปุ่ม 'สอนเป็น...' ด้านล่างช่องกรอกเพื่อจำคำนี้ได้ทันที)`;
+                    voiceStatusText.textContent = `ได้ยินว่า "${primaryTranscript}" (กดปุ่ม 'สอนเป็น...' ด้านล่างเพื่อจำคำนี้)`;
                 }
             }
 
@@ -801,7 +816,14 @@
             }
         };
 
-        // ปุ่ม Quick Teach (สอนคำด่วนในคลิกเดียวจากหน้าหลัก)
+        recognition.onerror = (event) => {
+            if (event.error === 'network') {
+                voiceStatusText.textContent = '⚠️ ระบบรู้จำเสียงของเบราว์เซอร์ต้องใช้อินเทอร์เน็ต (โหมดตาราง/พิมพ์/คาลิเบรตยังทำงานออฟไลน์ได้)';
+            } else if (event.error !== 'no-speech') {
+                voiceStatusText.textContent = `ข้อผิดพลาดไมโครโฟน: ${event.error}`;
+            }
+        };
+
         document.querySelectorAll('.teach-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const targetKey = chip.getAttribute('data-teach');
@@ -816,7 +838,7 @@
                     voiceDict[targetKey].unshift(cleaned);
                     localStorage.setItem('chandy_voice_dict_v3', JSON.stringify(voiceDict));
                 }
-                voiceStatusText.textContent = `✅ จำคำว่า "${cleaned}" เป็นรหัส [${targetKey}] เรียบร้อยแล้ว! ลองพูดใหม่อีกครั้งได้เลย`;
+                voiceStatusText.textContent = `✅ จำคำว่า "${cleaned}" เป็นรหัส [${targetKey}] เรียบร้อยแล้ว!`;
                 rapidInput.focus();
             });
         });
