@@ -2,36 +2,43 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Chandy Calc">
     <meta name="theme-color" content="#0d1b2a">
     
-    <title>Chandy Calculator - Offline Ready & Fixed 150/7</title>
+    <title>Chandy Calculator</title>
     <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body { 
-            margin: 0; padding: 0; 
-            background: rgba(13, 27, 42, 1); 
+            margin: 0;
+            padding: env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px;
+            background: #0d1b2a; 
             font-family: 'Courier New', Courier, monospace; 
-            height: 100vh;
+            height: 100dvh;
             display: flex; 
             flex-direction: column; 
-            align-items: center; 
-            justify-content: flex-start; 
+            justify-content: space-between;
             overflow: hidden; 
             overscroll-behavior-y: none;
         }
         
+        /* ส่วนบน: แสดงผลลัพธ์ขนาดใหญ่เต็มตา */
         .preview-container {
+            flex: 1;
             width: 100%;
-            height: 52vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px;
-            box-sizing: border-box;
+            padding: 10px 0;
+            min-height: 0;
+            overflow-y: auto;
         }
 
         #previewText { 
@@ -39,98 +46,70 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            font-size: clamp(30px, 10vw, 100px);
+            gap: 14px;
+            font-size: clamp(44px, 14vw, 105px);
             font-weight: 900; 
             line-height: 1; 
             text-align: center; 
-            margin: 0;
-            padding: 0;
             width: 100%;
         }
 
-        .color-hit { color: #00ff00; text-shadow: 0 0 25px rgba(0,255,0,0.8); }
-        .color-miss { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.8); }
-        .color-score { color: #00e5ff; text-shadow: 0 0 25px rgba(0, 229, 255, 0.8); }
+        .color-hit { color: #00ff00; text-shadow: 0 0 28px rgba(0,255,0,0.85); }
+        .color-miss { color: #ff3333; text-shadow: 0 0 28px rgba(255,51,51,0.85); }
+        .color-score { color: #00e5ff; text-shadow: 0 0 28px rgba(0, 229, 255, 0.85); }
 
-        .input-container {
-            width: 95%;
-            max-width: 920px;
-            margin-top: 1vh; 
-        }
-
-        .voice-bar {
+        /* ส่วนควบคุมด้านล่าง (ออกแบบให้กดง่ายด้วยมือเดียวบน iPhone 12 Pro Max) */
+        .bottom-panel {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
             gap: 10px;
-            margin-bottom: 8px;
-            padding: 8px 14px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            color: #fff;
-            font-family: Tahoma, sans-serif;
+            padding-bottom: 12px;
         }
 
-        .btn {
-            border: none;
-            padding: 10px 16px;
+        /* แถบสถานะการรับเสียงแบบเต็มความกว้าง (อ่านชัดเจนในแนวตั้ง) */
+        .voice-status-box {
+            width: 100%;
+            min-height: 44px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            border-radius: 10px;
+            color: #90e0ef;
+            font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
             font-size: 15px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
+            line-height: 1.35;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            white-space: nowrap;
+            justify-content: center;
+            text-align: center;
+            word-break: break-word;
         }
 
-        .mic-btn { background: #ff3333; color: #fff; }
-        .mic-btn.active { background: #00c853; box-shadow: 0 0 15px rgba(0, 200, 83, 0.7); }
-        .cal-btn { background: #3a506b; color: #fff; }
-        .cal-btn:hover { background: #5bc0be; color: #000; }
-
-        .net-badge {
-            font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .net-online { background: rgba(0, 200, 83, 0.2); color: #00ff88; border: 1px solid #00c853; }
-        .net-offline { background: rgba(255, 183, 3, 0.2); color: #ffb703; border: 1px solid #ffb703; }
-
-        .voice-log {
-            font-size: 14px;
-            color: #90e0ef;
-            flex: 1;
-            margin: 0 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
+        /* กล่องกรอกรหัส + ปุ่มล้างหน้าจอในตัว */
         .input-wrapper { 
+            position: relative;
             background: #fff; 
-            padding: 5px; 
-            border-radius: 12px; 
-            border: 6px solid #00e5ff; 
+            padding: 4px 44px 4px 12px; 
+            border-radius: 14px; 
+            border: 5px solid #00e5ff; 
             width: 100%; 
-            box-sizing: border-box; 
-            box-shadow: 0 0 20px rgba(0,229,255,0.6); 
+            box-shadow: 0 0 20px rgba(0,229,255,0.5); 
             transition: border-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
         }
 
         .input-wrapper.listening-border {
             border-color: #00ff88;
-            box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
+            box-shadow: 0 0 24px rgba(0, 255, 136, 0.7);
         }
 
         #rapidInput { 
-            font-size: clamp(28px, 7vw, 60px);
-            height: 10vh; 
-            min-height: 60px;
+            font-size: clamp(28px, 8vw, 48px);
+            height: 64px;
             width: 100%; 
             text-align: center; 
             font-weight: bold; 
@@ -142,62 +121,109 @@
             font-family: 'Courier New', Courier, monospace; 
         }
 
-        .voice-guide {
-            margin-top: 8px;
-            color: #8da9c4;
-            font-family: Tahoma, sans-serif;
-            font-size: 13px;
-            text-align: center;
-            line-height: 1.5;
-        }
-        .voice-guide span { color: #00e5ff; font-weight: bold; }
-
-        .quick-teach-bar {
+        .clear-x-btn {
+            position: absolute;
+            right: 8px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: #e2e8f0;
+            color: #334155;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .clear-x-btn:active { background: #cbd5e1; }
+
+        /* แถวปุ่มควบคุมหลัก (เปิดไมค์ + คาลิเบรต) */
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn {
+            border: none;
+            padding: 14px 16px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
+            transition: all 0.15s;
+        }
+
+        .mic-btn {
+            flex: 2;
+            background: #e63946;
+            color: #fff;
+        }
+        .mic-btn.active {
+            background: #00c853;
+            box-shadow: 0 0 18px rgba(0, 200, 83, 0.65);
+        }
+        .cal-btn {
+            flex: 1;
+            background: #2b3d54;
+            color: #e0e1dd;
+            border: 1px solid #415a77;
+        }
+        .cal-btn:active { background: #415a77; }
+
+        /* แถบปุ่มสอนคำด่วน (Quick Teach) แบบกะทัดรัด */
+        .quick-teach-bar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
             gap: 6px;
-            margin-top: 6px;
-            font-family: Tahoma, sans-serif;
-            font-size: 12px;
-            color: #adb5bd;
-            flex-wrap: wrap;
+            width: 100%;
         }
         .teach-chip {
             background: #1b263b;
             border: 1px solid #415a77;
-            color: #e0e1dd;
-            padding: 4px 10px;
-            border-radius: 6px;
+            color: #cbd5e1;
+            padding: 8px 4px;
+            border-radius: 8px;
             cursor: pointer;
+            font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
             font-size: 12px;
+            font-weight: bold;
+            text-align: center;
         }
-        .teach-chip:hover {
+        .teach-chip:active {
             background: #00e5ff;
             color: #000;
-            font-weight: bold;
         }
 
+        /* Modal คาลิเบรตเสียง */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 999;
             align-items: center;
             justify-content: center;
-            font-family: Tahoma, sans-serif;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
         }
         .modal-overlay.show { display: flex; }
         .modal-box {
             background: #1b263b;
             color: #fff;
-            width: 92%;
-            max-width: 700px;
-            border-radius: 12px;
-            padding: 20px;
+            width: 100%;
+            max-width: 560px;
+            border-radius: 14px;
+            padding: 18px;
             border: 2px solid #00e5ff;
-            max-height: 88vh;
+            max-height: 85dvh;
             overflow-y: auto;
         }
         .modal-header {
@@ -206,36 +232,38 @@
             align-items: center;
             border-bottom: 1px solid #415a77;
             padding-bottom: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
-        .modal-header h3 { margin: 0; color: #00e5ff; }
+        .modal-header h3 { margin: 0; color: #00e5ff; font-size: 17px; }
         .cal-row {
-            display: grid;
-            grid-template-columns: 150px 1fr 135px;
-            gap: 10px;
-            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             margin-bottom: 10px;
             background: rgba(255,255,255,0.05);
-            padding: 8px 12px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .cal-row-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .cal-label { font-weight: bold; font-size: 14px; color: #e0e1dd; }
-        .cal-label small { display: block; color: #8da9c4; font-weight: normal; }
         .cal-input {
             width: 100%;
-            padding: 8px;
+            padding: 8px 10px;
             border-radius: 6px;
             border: 1px solid #415a77;
             background: #0d1b2a;
             color: #00ff88;
             font-size: 14px;
-            box-sizing: border-box;
         }
         .record-cal-btn {
             background: #e63946;
             color: #fff;
             border: none;
-            padding: 8px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
@@ -245,7 +273,8 @@
         .modal-footer {
             display: flex;
             justify-content: space-between;
-            margin-top: 15px;
+            gap: 10px;
+            margin-top: 14px;
             padding-top: 12px;
             border-top: 1px solid #415a77;
         }
@@ -253,87 +282,52 @@
 </head>
 <body>
 
+    <!-- ส่วนบน: แสดงผลลัพธ์ -->
     <div class="preview-container">
         <div id="previewText"></div>
     </div>
 
-    <div class="input-container">
-        <div class="voice-bar">
-            <button id="micToggleBtn" class="btn mic-btn">🎤 เปิดไมค์ (F2)</button>
-            <span id="netStatusBadge" class="net-badge net-online">ONLINE</span>
-            <div id="voiceStatusText" class="voice-log">พร้อมใช้งาน — ทดสอบ "150 ทิศ 7" ได้ผลลัพธ์ 150/7</div>
-            <button id="openCalBtn" class="btn cal-btn">⚙️ คาลิเบรตเสียง</button>
+    <!-- ส่วนล่าง: สถานะเสียง + ช่องกรอก + ปุ่มควบคุม -->
+    <div class="bottom-panel">
+        <div id="voiceStatusText" class="voice-status-box">
+            กดปุ่มเปิดไมค์เพื่อเริ่มสั่งงานด้วยเสียง
         </div>
 
         <div id="inputBoxWrapper" class="input-wrapper">
-            <input type="text" id="rapidInput" autocomplete="off" autofocus autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พูดหรือพิมพ์...">
+            <input type="text" id="rapidInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พูดหรือพิมพ์...">
+            <button id="clearXBtn" class="clear-x-btn" type="button" title="ล้างหน้าจอ">✕</button>
+        </div>
+
+        <div class="controls-row">
+            <button id="micToggleBtn" class="btn mic-btn" type="button">🎤 เปิดไมค์</button>
+            <button id="openCalBtn" class="btn cal-btn" type="button">⚙️ คาลิเบรต</button>
         </div>
 
         <div class="quick-teach-bar">
-            <span>ถ้าคำที่ได้ยินล่าสุดเพี้ยน กดผูกคำด่วน:</span>
-            <button class="teach-chip" data-teach="OUT">สอนเป็น OUT/ทิศ</button>
-            <button class="teach-chip" data-teach="NS">สอนเป็น N/S</button>
-            <button class="teach-chip" data-teach="DRY">สอนเป็น D (ดราย)</button>
-            <button class="teach-chip" data-teach="HIT">สอนเป็น HIT</button>
-            <button class="teach-chip" data-teach="CLEAR">สอนเป็น เคลียร์</button>
-        </div>
-
-        <div class="voice-guide">
-            พิกัด: <span>"สิบซ้าย"</span> (10L) | ระยะ/ทิศ: <span>"150 ทิศ 7"</span> (<b>150/7</b>) | ผลปืน: <span>"สิบ"</span> (10), <span>"สิบสอง"</span> (12) <br>
-            สถานะ: <span>"เอาท์ทิศสาม"</span> (OUT/3) | <span>"โนสะปาร์ค"</span> (N/S) | <span>"ดราย"</span> (D) | <span>"เคลียร์"</span> (ล้างจอ)
+            <button class="teach-chip" type="button" data-teach="OUT">+ OUT</button>
+            <button class="teach-chip" type="button" data-teach="NS">+ N/S</button>
+            <button class="teach-chip" type="button" data-teach="DRY">+ DRY</button>
+            <button class="teach-chip" type="button" data-teach="HIT">+ HIT</button>
+            <button class="teach-chip" type="button" data-teach="CLEAR">+ เคลียร์</button>
         </div>
     </div>
 
+    <!-- Modal คาลิเบรตเสียง -->
     <div id="calModal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-header">
-                <h3>⚙️ คาลิเบรตเสียงพูด (จำสำเนียงอัตโนมัติ)</h3>
-                <button id="closeCalBtn" class="btn" style="background:#415a77;color:#fff;padding:6px 12px;">✕ ปิด</button>
+                <h3>⚙️ คาลิเบรตเสียงพูด</h3>
+                <button id="closeCalBtn" class="btn" style="background:#415a77;color:#fff;padding:6px 12px;font-size:14px;">✕ ปิด</button>
             </div>
-            <p style="font-size:13px; color:#ccc; margin-top:0;">
-                สำหรับคำว่า <b>เอาท์ทิศ</b> สามารถพูดว่า <i>"เอาท์ทิศสาม"</i> ตอนคาลิเบรตได้เลย ระบบจะตัดเลข 3 ออกและจำเฉพาะคำนำหน้า
-            </p>
             <div id="calRowsContainer"></div>
             <div class="modal-footer">
-                <button id="resetCalBtn" class="btn" style="background:#6c757d;color:#fff;">คืนค่าเริ่มต้น</button>
-                <button id="saveCalBtn" class="btn" style="background:#00c853;color:#fff;">💾 บันทึกการตั้งค่า</button>
+                <button id="resetCalBtn" class="btn" style="background:#6c757d;color:#fff;padding:10px 14px;font-size:14px;">คืนค่าเริ่มต้น</button>
+                <button id="saveCalBtn" class="btn" style="background:#00c853;color:#fff;padding:10px 18px;font-size:14px;">💾 บันทึก</button>
             </div>
         </div>
     </div>
 
 <script>
-    // ==========================================
-    // 0. ระบบแคชหน้าเว็บสำหรับใช้งานออฟไลน์ (Service Worker)
-    // ==========================================
-    function updateNetworkBadge() {
-        const badge = document.getElementById('netStatusBadge');
-        if (navigator.onLine) {
-            badge.textContent = 'ONLINE';
-            badge.className = 'net-badge net-online';
-        } else {
-            badge.textContent = 'OFFLINE (Local)';
-            badge.className = 'net-badge net-offline';
-        }
-    }
-    window.addEventListener('online', updateNetworkBadge);
-    window.addEventListener('offline', updateNetworkBadge);
-    updateNetworkBadge();
-
-    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-        const swCode = `
-            const CACHE_NAME = 'chandy-calc-offline-v1';
-            self.addEventListener('install', e => {
-                e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./', location.href])));
-                self.skipWaiting();
-            });
-            self.addEventListener('fetch', e => {
-                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request).catch(() => caches.match('./'))));
-            });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
-    }
-
     // ==========================================
     // 1. ฐานข้อมูลตารางคำนวณ (Core Engine)
     // ==========================================
@@ -477,38 +471,43 @@
             preview.innerHTML = '';
         }
     });
-    rapidInput.focus();
+
+    document.getElementById('clearXBtn').addEventListener('click', () => {
+        rapidInput.value = '';
+        preview.innerHTML = '';
+        rapidInput.focus();
+    });
 
     // ==========================================
-    // 2. คลังคำศัพท์คาลิเบรตเสียง
+    // 2. คลังคำศัพท์คาลิเบรตเสียง (คัดกรองให้แม่นยำ ไม่ทับซ้อนกัน)
     // ==========================================
     const defaultVoiceDict = {
-        CLEAR: ["เคลียร์", "เคียร์", "คลียร์", "เขี่ย", "เฮีย", "เพลีย", "เสีย", "เมีย", "เชียร์", "เลีย", "เบียร์", "เกียร์", "clear", "ลบ", "ล้าง"],
-        HIT:   ["ฮิต", "ฮิช", "ฮิด", "ฮิป", "คิด", "ติด", "วิท", "นิด", "ฟิต", "พิษ", "มิด", "ซิป", "ฮีท", "หิด", "ขีด", "ฉีด", "hit"],
-        NS:    ["โนสะปาร์ค", "โนสปาร์ค", "โนสปาก", "โนสปาค", "โนปาร์ค", "โนปาก", "หนูสปาร์ค", "นกกระจอก", "โน๊ตบุ๊ค", "โนส", "สะปาร์ค", "สปาร์ค", "สปาก", "no spark", "n/s", "เอ็นเอส", "ไม่เห็น"],
-        DRY:   ["ดราย", "ดาย", "ดรัย", "ราย", "ตาย", "ได้", "นาย", "ลาย", "ยาย", "บ่าย", "คล้าย", "กลาย", "ทนาย", "สบาย", "กระจาย", "ไดร์", "ใด", "ใจ", "ไป", "ใน", "ใบ", "ไว", "ไฟ", "dry"],
-        OUT:   ["เอาท์ทิศ", "เอาต์ทิศ", "เอ้าท์ทิศ", "เอ้าทิศ", "เอาทิศ", "อาทิตย์", "ออฟฟิศ", "เอาที่", "เอาที", "เข้าที่", "เสาร์ที่", "คราวที่", "ชาวที่", "ข่าวที่", "สาวที่", "าวที่", "เอาท์", "เอาต์", "เอ้าท์", "เอ้า", "เอา", "อ้าว", "าว", "เฮา", "เมา", "เสา", "เก่า", "เขา", "เรา", "เผา", "เกา", "เบา", "เทา", "เงา", "เหา", "เช่า", "เช้า", "ข้าว", "ขาว", "สาว", "ดาว", "ยาว", "กาว", "ลาว", "มะพร้าว", "out", "house"],
-        PIPE:  ["จุด", "สุด", "ขุด", "หลุด", "หยุด", "ฉุด", "มุด", "ผุด", "คุด", "บุตร", "ชุด", "คั่น"],
-        DIR:   ["ทิศ", "ทิด", "พิษ", "ชิด", "มิตร", "ฤทธิ์", "สิทธิ์", "กิจ", "ปิด", "บิด", "ผิด", "ที่", "ที", "พี่", "ชี้", "ทับ", "ขับ", "รับ", "นับ", "จับ", "ดับ", "หลับ", "กลับ", "สับ", "คับ", "ครับ", "สแลช"],
-        LEFT:  ["ซ้าย", "สาย", "ทราย", "ชาย", "ไซส์", "ยาย", "ขาย", "หาย", "ฉาย", "ฝ้าย", "้าย"],
-        RIGHT: ["ขวา", "ฝา", "ขา", "ฟ้า", "กว่า", "ผา", "หมา", "ป๋า", "มา", "วา", "หา", "ตา", "พา", "ลา", "คา", "ชา", "ทา", "นา", "อา", "กา", "ขวาง", "ขวาน", "คว้า"]
+        CLEAR: ["เคลียร์", "เคียร์", "คลียร์", "เขี่ย", "เชียร์", "clear", "ลบ", "ล้าง"],
+        HIT:   ["ฮิต", "ฮิช", "ฮิด", "ฮิป", "ฮีท", "คิด", "ฟิต", "มิด", "hit"],
+        NS:    ["โนสะปาร์ค", "โนสปาร์ค", "โนสปาก", "โนสปาค", "โนปาร์ค", "โนปาก", "หนูสปาร์ค", "โนส", "สะปาร์ค", "สปาร์ค", "สปาก", "no spark", "n/s", "เอ็นเอส", "ไม่เห็น"],
+        DRY:   ["ดราย", "ดาย", "ดรัย", "ราย", "ตาย", "ได้", "ไดร์", "dry"],
+        OUT:   ["เอาท์ทิศ", "เอาต์ทิศ", "เอ้าท์ทิศ", "เอ้าทิศ", "เอาทิศ", "อาทิตย์", "ออฟฟิศ", "เอาที่", "เอาที", "เอาท์", "เอาต์", "เอ้าท์", "เอ้า", "อ้าว", "out"],
+        PIPE:  ["จุด", "สุด", "ขุด", "หลุด", "หยุด", "คั่น"],
+        DIR:   ["ทิศ", "ทิด", "พิษ", "ชิด", "ที่", "ที", "ทับ", "สแลช"],
+        LEFT:  ["ซ้าย", "สาย", "ทราย", "ชาย", "ไซส์"],
+        RIGHT: ["ขวา", "ฝา", "ขา", "ฟ้า", "กว่า", "ขวาง"]
     };
 
     const calConfigMeta = [
-        { key: 'OUT',   title: 'เอาท์ทิศ... (OUT/)', desc: 'พูดเช่น "เอาท์ทิศสาม" ระบบจะตัดเลข 3 ออกเพื่อจำคำหน้า' },
-        { key: 'NS',    title: 'โนสะปาร์ค (N/S)',   desc: 'คำเรียกเมื่อไม่เห็นควัน/ประกายไฟ' },
-        { key: 'DRY',   title: 'ดราย (D)',          desc: 'คำเรียกเมื่อลูกด้าน เช่น ดราย, ดาย, ได้' },
-        { key: 'HIT',   title: 'ฮิต (HIT)',         desc: 'คำเรียกเมื่อเข้าเป้า เช่น ฮิต, คิด, ติด' },
-        { key: 'DIR',   title: 'ทิศ / ทับ (/)',     desc: 'ตัวคั่นระยะกับทิศ เช่น 150 ทิศ 7 -> 150/7' },
-        { key: 'LEFT',  title: 'ซ้าย (L)',          desc: 'คำบอกฝั่งซ้าย เช่น ซ้าย, สาย' },
-        { key: 'RIGHT', title: 'ขวา (R)',           desc: 'คำบอกฝั่งขวา เช่น ขวา, ฝา' },
-        { key: 'PIPE',  title: 'จุด (|)',           desc: 'ตัวคั่นชุดซ้าย-ขวา เวลาพูดหลายลูก' },
-        { key: 'CLEAR', title: 'เคลียร์ (ล้างจอ)',   desc: 'คำสั่งล้างหน้าจอเพื่อเริ่มลูกใหม่' }
+        { key: 'OUT',   title: 'เอาท์ทิศ... (OUT/)' },
+        { key: 'NS',    title: 'โนสะปาร์ค (N/S)' },
+        { key: 'DRY',   title: 'ดราย (D)' },
+        { key: 'HIT',   title: 'ฮิต (HIT)' },
+        { key: 'DIR',   title: 'ทิศ / ทับ (/)' },
+        { key: 'LEFT',  title: 'ซ้าย (L)' },
+        { key: 'RIGHT', title: 'ขวา (R)' },
+        { key: 'PIPE',  title: 'จุด (|)' },
+        { key: 'CLEAR', title: 'เคลียร์ (ล้างจอ)' }
     ];
 
     function loadVoiceDict() {
         try {
-            const saved = localStorage.getItem('chandy_voice_dict_v3');
+            const saved = localStorage.getItem('chandy_voice_dict_v4');
             if (saved) {
                 let parsed = JSON.parse(saved);
                 let merged = {};
@@ -524,7 +523,7 @@
     let voiceDict = loadVoiceDict();
 
     // ==========================================
-    // 3. ระบบแปลงตัวเลขภาษาไทยเป็นอารบิก
+    // 3. แปลงตัวเลขภาษาไทยเป็นอารบิก
     // ==========================================
     const thaiDigitMap = {
         'ศูนย์':0, 'หนึ่ง':1, 'เอ็ด':1, 'สอง':2, 'ยี่':2, 'สาม':3, 'สี่':4,
@@ -568,23 +567,21 @@
     }
 
     // ==========================================
-    // 4. HEURISTIC VOICE ENGINE (แก้ลำดับ [ระยะ] ทิศ [ทิศ] ก่อน OUT/)
+    // 4. ตัวแปลคำสั่งเสียง (แก้บั๊ก 120 ทิศ 7 -> 120/7 สมบูรณ์)
     // ==========================================
     function parseVoiceToChandyCode(transcript) {
         let s = transcript.trim().toLowerCase();
         let compact = s.replace(/\s+/g, '');
 
-        // 1. ตรวจจับคำสั่ง "เคลียร์"
-        const clearRx = new RegExp(buildRegexFromList(voiceDict.CLEAR), 'i');
-        if (clearRx.test(compact)) {
+        // 1. ตรวจจับ "เคลียร์"
+        if (new RegExp(buildRegexFromList(voiceDict.CLEAR), 'i').test(compact)) {
             return { isClear: true, code: '' };
         }
 
-        // 2. ดักคำว่า "โนสะปาร์ค" (N/S) ก่อนแปลงตัวเลข
-        const nsRx = new RegExp(buildRegexFromList(voiceDict.NS), 'gi');
-        s = s.replace(nsRx, ' N/S ');
+        // 2. แปลง "โนสะปาร์ค" -> N/S
+        s = s.replace(new RegExp(buildRegexFromList(voiceDict.NS), 'gi'), ' N/S ');
 
-        // 3. แปลงคำตัวเลขไทยเป็นอารบิกทั้งหมด
+        // 3. แปลงตัวเลขไทยเป็นอารบิก
         s = convertAllThaiNumbers(s);
 
         const dirWords = buildRegexFromList(voiceDict.DIR);
@@ -592,25 +589,26 @@
         const leftWords = buildRegexFromList(voiceDict.LEFT);
         const rightWords = buildRegexFromList(voiceDict.RIGHT);
 
-        // 4. [สำคัญ] แปลง "[ระยะ] ทิศ [1-12]" หรือ "[ระยะ] ทับ [1-12]" เช่น "150 ทิศ 7" -> "150/7" ก่อนกฎ OUT/
-        const slashRx = new RegExp(`(\\d+)\\s*(?:${dirWords}|\\/)\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi');
-        s = s.replace(slashRx, ' $1/$2 ');
+        // 4. [สำคัญสุด] แปลง "[ระยะ] ทิศ [1-12]" เช่น "120 ทิศ 7" -> "120/7" ก่อนกฎ OUT
+        s = s.replace(new RegExp(`(\\d+)\\s*(?:${dirWords}|\\/)\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi'), ' $1/$2 ');
 
-        // 5. แปลงคำสั่งซ้าย/ขวา เช่น "10 ซ้าย" -> 10L, "15 ขวา" -> 15R
+        // 5. แปลง "เอาท์ทิศ [1-12]" -> 99xx (ต้องขึ้นต้นด้วยคำกลุ่ม OUT จริงๆ)
+        s = s.replace(new RegExp(`(?:^|\\s)(?:${outWords})\\s*(?:${dirWords})?\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi'), ' 99$1 ');
+
+        // 6. กรณีพูดเว้นจังหวะ: ก้อนนี้มีแค่ "ทิศ 7" -> แปลงเป็น "/7" เพื่อไปเชื่อมกับเลขระยะเดิม (เช่น 120 + /7 = 120/7)
+        s = s.replace(new RegExp(`(?:^|\\s)(?:${dirWords})\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi'), ' /$1 ');
+
+        // 7. แปลงซ้าย / ขวา
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${leftWords})`, 'gi'), ' $1L ');
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${rightWords})`, 'gi'), ' $1R ');
 
-        // 6. ดักจับกลุ่ม "เอาท์ทิศ [1-12]" -> 99xx (ต้องไม่มีตัวเลขระยะนำหน้า)
-        const outRx1 = new RegExp(`(?:^|\\s)(?:${outWords})\\s*(?:${dirWords})?\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi');
-        s = s.replace(outRx1, ' 99$1 ');
-
-        // 7. แปลงคำสถานะ HIT, D (ดราย), | (จุด)
+        // 8. แปลงสถานะ HIT, D, |
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.HIT), 'gi'), ' HIT ');
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.DRY), 'gi'), ' D ');
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.PIPE), 'gi'), ' | ');
 
-        // 8. กฎเหล็กแก้คำเพี้ยนตัวเลข (Step 5/10 & Distance/Clock Heuristics)
-        let rawTokens = s.match(/(99(?:1[0-2]|[1-9])|OUT\/\d+|HIT|N\/S|D|\||\d+\/\d+|\d+[LR]|\d+)/gi) || [];
+        // 9. ดึง Token และใช้กฎ Step 5/10 แก้คำเพี้ยน
+        let rawTokens = s.match(/(99(?:1[0-2]|[1-9])|OUT\/\d+|HIT|N\/S|D|\||\d+\/\d+|\/\d+|\d+[LR]|\d+)/gi) || [];
 
         if (rawTokens.length === 1 && /^\d+$/.test(rawTokens[0])) {
             let num = parseInt(rawTokens[0], 10);
@@ -618,9 +616,7 @@
                 return { isClear: false, code: `${num - 3}L` };
             }
             let splitSlash = trySplitMergedDistanceClock(rawTokens[0]);
-            if (splitSlash) {
-                return { isClear: false, code: splitSlash };
-            }
+            if (splitSlash) return { isClear: false, code: splitSlash };
             return { isClear: false, code: rawTokens[0] };
         }
 
@@ -630,18 +626,14 @@
 
             if (/^\d+$/.test(tk)) {
                 let num = parseInt(tk, 10);
-
                 if (num >= 13 && num <= 94 && (num % 10 === 3 || num % 10 === 4)) {
-                    let baseTen = Math.floor(num / 10) * 10;
-                    processedTokens.push(`${baseTen}L`);
+                    processedTokens.push(`${Math.floor(num / 10) * 10}L`);
                     continue;
                 }
                 if (num === 53 || num === 54) {
                     processedTokens.push(`5L`);
                     continue;
                 }
-
-                // กรณีเลข 2 ชุดเรียงกัน เช่น "150 7" -> "150/7"
                 if (i + 1 < rawTokens.length && /^\d+$/.test(rawTokens[i + 1])) {
                     let nextNum = parseInt(rawTokens[i + 1], 10);
                     if (num >= 10 && num <= 350 && num % 5 === 0 && nextNum >= 1 && nextNum <= 12) {
@@ -650,15 +642,12 @@
                         continue;
                     }
                 }
-
-                // กรณีเลขรวบติดกัน เช่น "1507" -> "150/7"
                 let splitSlash = trySplitMergedDistanceClock(tk);
                 if (splitSlash) {
                     processedTokens.push(splitSlash);
                     continue;
                 }
             }
-
             processedTokens.push(tk);
         }
 
@@ -697,8 +686,19 @@
         return w.replace(/\s+/g, '');
     }
 
+    // เชื่อมคำเข้าช่อง rapidInput อย่างฉลาด (เช่น ค่าเดิมคือ "120" แล้วก้อนใหม่มาเป็น "/7" -> "120/7")
+    function appendCodeToInput(newCode) {
+        let current = rapidInput.value.trim();
+        if (newCode.startsWith('/') && /\d+$/.test(current)) {
+            rapidInput.value = current + newCode;
+        } else {
+            rapidInput.value = (current + ' ' + newCode).trim();
+        }
+        processRapidInput();
+    }
+
     // ==========================================
-    // 5. ระบบควบคุมไมโครโฟน & Quick Teach
+    // 5. ระบบควบคุมไมโครโฟน (Web Speech API)
     // ==========================================
     const micToggleBtn = document.getElementById('micToggleBtn');
     const voiceStatusText = document.getElementById('voiceStatusText');
@@ -709,7 +709,7 @@
     let lastHeardRawText = '';
 
     if (!SpeechRecognition) {
-        voiceStatusText.textContent = "เบราว์เซอร์ไม่รองรับระบบเสียง (แนะนำ Google Chrome หรือ MS Edge บน PC)";
+        voiceStatusText.textContent = "เบราว์เซอร์นี้ไม่รองรับการสั่งงานด้วยเสียง";
         micToggleBtn.disabled = true;
     } else {
         const recognition = new SpeechRecognition();
@@ -729,7 +729,6 @@
                 manualStop = true;
                 recognition.stop();
             }
-            rapidInput.focus();
         }
 
         micToggleBtn.addEventListener('click', toggleMicrophone);
@@ -743,9 +742,9 @@
         recognition.onstart = () => {
             isListening = true;
             micToggleBtn.classList.add('active');
-            micToggleBtn.textContent = '🟢 กำลังฟังเสียง (F2)';
+            micToggleBtn.textContent = '🟢 กำลังฟังเสียง';
             inputBoxWrapper.classList.add('listening-border');
-            voiceStatusText.textContent = 'กำลังฟังคำสั่งเสียง...';
+            voiceStatusText.textContent = 'กำลังฟัง... พูดคำสั่งได้เลย';
         };
 
         recognition.onresult = (event) => {
@@ -759,6 +758,7 @@
                 }
 
                 const primaryTranscript = res[0].transcript.trim();
+                if (!primaryTranscript) continue;
                 lastHeardRawText = primaryTranscript;
 
                 if (calibratingTargetKey) {
@@ -789,13 +789,12 @@
                 if (bestResult && bestResult.isClear) {
                     rapidInput.value = '';
                     processRapidInput();
-                    voiceStatusText.textContent = `ล้างหน้าจอแล้ว (ได้ยิน: "${chosenTranscript}")`;
+                    voiceStatusText.textContent = `ล้างหน้าจอ ("${chosenTranscript}")`;
                 } else if (bestResult && bestResult.code) {
-                    rapidInput.value = (rapidInput.value + ' ' + bestResult.code).trim();
-                    processRapidInput();
-                    voiceStatusText.textContent = `ได้ยิน: "${chosenTranscript}" ➔ แปลงเป็น [${bestResult.code}]`;
+                    appendCodeToInput(bestResult.code);
+                    voiceStatusText.textContent = `"${chosenTranscript}" ➔ [${bestResult.code}]`;
                 } else {
-                    voiceStatusText.textContent = `ได้ยินว่า "${primaryTranscript}" (กดปุ่ม 'สอนเป็น...' ด้านล่างเพื่อจำคำนี้)`;
+                    voiceStatusText.textContent = `ได้ยิน: "${primaryTranscript}"`;
                 }
             }
 
@@ -810,25 +809,24 @@
             } else {
                 isListening = false;
                 micToggleBtn.classList.remove('active');
-                micToggleBtn.textContent = '🎤 เปิดไมค์ (F2)';
+                micToggleBtn.textContent = '🎤 เปิดไมค์';
                 inputBoxWrapper.classList.remove('listening-border');
                 voiceStatusText.textContent = 'ปิดไมโครโฟนแล้ว';
             }
         };
 
         recognition.onerror = (event) => {
-            if (event.error === 'network') {
-                voiceStatusText.textContent = '⚠️ ระบบรู้จำเสียงของเบราว์เซอร์ต้องใช้อินเทอร์เน็ต (โหมดตาราง/พิมพ์/คาลิเบรตยังทำงานออฟไลน์ได้)';
-            } else if (event.error !== 'no-speech') {
+            if (event.error !== 'no-speech' && event.error !== 'aborted') {
                 voiceStatusText.textContent = `ข้อผิดพลาดไมโครโฟน: ${event.error}`;
             }
         };
 
+        // ปุ่ม Quick Teach ด้านล่าง
         document.querySelectorAll('.teach-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const targetKey = chip.getAttribute('data-teach');
                 if (!lastHeardRawText) {
-                    alert('ยังไม่มีเสียงพูดล่าสุด ให้ลองพูดคำนั้นใส่ไมค์ก่อน 1 ครั้ง แล้วกดปุ่มนี้อีกทีครับ');
+                    voiceStatusText.textContent = 'ลองพูดคำที่ต้องการสอนก่อน 1 ครั้ง แล้วค่อยกดปุ่มนี้';
                     return;
                 }
                 const cleaned = cleanCalibratedWord(lastHeardRawText, targetKey);
@@ -836,10 +834,9 @@
 
                 if (!voiceDict[targetKey].includes(cleaned)) {
                     voiceDict[targetKey].unshift(cleaned);
-                    localStorage.setItem('chandy_voice_dict_v3', JSON.stringify(voiceDict));
+                    localStorage.setItem('chandy_voice_dict_v4', JSON.stringify(voiceDict));
                 }
-                voiceStatusText.textContent = `✅ จำคำว่า "${cleaned}" เป็นรหัส [${targetKey}] เรียบร้อยแล้ว!`;
-                rapidInput.focus();
+                voiceStatusText.textContent = `✅ จำคำว่า "${cleaned}" เป็น [${targetKey}] แล้ว`;
             });
         });
 
@@ -852,12 +849,11 @@
         function renderCalibrationModal() {
             calRowsContainer.innerHTML = calConfigMeta.map(item => `
                 <div class="cal-row">
-                    <div class="cal-label">
-                        ${item.title}
-                        <small>${item.desc}</small>
+                    <div class="cal-row-top">
+                        <span class="cal-label">${item.title}</span>
+                        <button type="button" class="record-cal-btn" data-key="${item.key}">🎙️ พูดเพื่อจำเสียง</button>
                     </div>
                     <input type="text" id="cal_in_${item.key}" class="cal-input" value="${voiceDict[item.key].join(', ')}">
-                    <button type="button" class="record-cal-btn" data-key="${item.key}">🎙️ พูดเพื่อจำเสียง</button>
                 </div>
             `).join('');
 
@@ -883,7 +879,7 @@
                 const key = btn.getAttribute('data-key');
                 if (calibratingTargetKey === key) {
                     btn.classList.add('recording');
-                    btn.textContent = '🔴 พูดคำนี้ได้เลย...';
+                    btn.textContent = '🔴 พูดได้เลย...';
                 } else {
                     btn.classList.remove('recording');
                     btn.textContent = '🎙️ พูดเพื่อจำเสียง';
@@ -909,7 +905,6 @@
         document.getElementById('closeCalBtn').addEventListener('click', () => {
             calibratingTargetKey = null;
             calModal.classList.remove('show');
-            rapidInput.focus();
         });
 
         document.getElementById('saveCalBtn').addEventListener('click', () => {
@@ -919,17 +914,16 @@
                     voiceDict[item.key] = inputEl.value.split(',').map(s => s.trim()).filter(Boolean);
                 }
             });
-            localStorage.setItem('chandy_voice_dict_v3', JSON.stringify(voiceDict));
+            localStorage.setItem('chandy_voice_dict_v4', JSON.stringify(voiceDict));
             calibratingTargetKey = null;
             calModal.classList.remove('show');
-            voiceStatusText.textContent = '✅ บันทึกคลังคำศัพท์คาลิเบรตลงเครื่องเรียบร้อยแล้ว';
-            rapidInput.focus();
+            voiceStatusText.textContent = '✅ บันทึกค่าคาลิเบรตเรียบร้อยแล้ว';
         });
 
         document.getElementById('resetCalBtn').addEventListener('click', () => {
-            if (confirm('ต้องการคืนค่าคำศัพท์เริ่มต้นทั้งหมดใช่หรือไม่?')) {
+            if (confirm('คืนค่าคำศัพท์เริ่มต้นทั้งหมด?')) {
                 voiceDict = JSON.parse(JSON.stringify(defaultVoiceDict));
-                localStorage.removeItem('chandy_voice_dict_v3');
+                localStorage.removeItem('chandy_voice_dict_v4');
                 renderCalibrationModal();
             }
         });
