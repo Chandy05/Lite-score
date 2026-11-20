@@ -18,7 +18,7 @@
 
         body { 
             margin: 0;
-            padding: env(safe-area-inset-top) 14px env(safe-area-inset-bottom) 14px;
+            padding: max(env(safe-area-inset-top), 8px) 12px max(env(safe-area-inset-bottom), 10px) 12px;
             background: #0d1b2a; 
             font-family: 'Courier New', Courier, monospace; 
             height: 100dvh;
@@ -28,15 +28,46 @@
             overflow: hidden; 
             overscroll-behavior-y: none;
         }
+
+        /* แถบประวัติย้อนหลังแบบบาง (ด้านบนสุด) */
+        .history-bar {
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            min-height: 28px;
+            padding: 2px 0;
+            scrollbar-width: none;
+            justify-content: center;
+        }
+        .history-bar::-webkit-scrollbar { display: none; }
+        .history-pill {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(144, 224, 239, 0.25);
+            color: #90e0ef;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .history-pill:active {
+            background: #00e5ff;
+            color: #000;
+        }
         
-        /* ส่วนบน: แสดงผลลัพธ์ขนาดใหญ่เต็มตา */
+        /* ส่วนบน: แสดงผลลัพธ์ขนาดใหญ่ ยืดหยุ่นตามขนาดจอ */
         .preview-container {
             flex: 1;
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 0;
+            padding: 8px 0;
             min-height: 0;
             overflow-y: auto;
         }
@@ -46,8 +77,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 14px;
-            font-size: clamp(44px, 14vw, 105px);
+            gap: clamp(8px, 2vh, 16px);
+            font-size: clamp(40px, 14vw, 108px);
             font-weight: 900; 
             line-height: 1; 
             text-align: center; 
@@ -58,45 +89,84 @@
         .color-miss { color: #ff3333; text-shadow: 0 0 28px rgba(255,51,51,0.85); }
         .color-score { color: #00e5ff; text-shadow: 0 0 28px rgba(0, 229, 255, 0.85); }
 
-        /* ส่วนควบคุมด้านล่าง (ออกแบบให้กดง่ายด้วยมือเดียวบน iPhone 12 Pro Max) */
+        /* ส่วนควบคุมด้านล่าง (รองรับตั้งแต่ iPhone SE, Android จอเล็ก ไปจนถึง 12 Pro Max และ PC) */
         .bottom-panel {
             width: 100%;
-            max-width: 600px;
+            max-width: 640px;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            padding-bottom: 12px;
+            gap: clamp(8px, 1.3vh, 12px);
+            padding-bottom: 4px;
         }
 
-        /* แถบสถานะการรับเสียงแบบเต็มความกว้าง (อ่านชัดเจนในแนวตั้ง) */
-        .voice-status-box {
+        /* แถบสถานะการรับเสียง + ปุ่ม Undo + สวิตช์เปิดโหมดสอนคำ */
+        .status-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
             width: 100%;
-            min-height: 44px;
-            padding: 10px 14px;
+        }
+
+        .voice-status-box {
+            flex: 1;
+            min-height: 42px;
+            padding: 8px 12px;
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(0, 229, 255, 0.25);
             border-radius: 10px;
             color: #90e0ef;
             font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
-            font-size: 15px;
-            line-height: 1.35;
+            font-size: clamp(13px, 3.6vw, 15px);
+            line-height: 1.3;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+            gap: 8px;
             word-break: break-word;
         }
 
-        /* กล่องกรอกรหัส + ปุ่มล้างหน้าจอในตัว */
+        .undo-btn {
+            display: none;
+            background: #ffb703;
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .teach-toggle-btn {
+            background: #1b263b;
+            border: 1px solid #415a77;
+            color: #cbd5e1;
+            border-radius: 10px;
+            padding: 0 12px;
+            font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .teach-toggle-btn.open {
+            background: #00e5ff;
+            color: #000;
+            border-color: #00e5ff;
+        }
+
+        /* กล่องกรอกรหัส */
         .input-wrapper { 
             position: relative;
             background: #fff; 
-            padding: 4px 44px 4px 12px; 
+            padding: 4px 12px; 
             border-radius: 14px; 
             border: 5px solid #00e5ff; 
             width: 100%; 
-            box-shadow: 0 0 20px rgba(0,229,255,0.5); 
+            box-shadow: 0 0 18px rgba(0,229,255,0.45); 
             transition: border-color 0.2s, box-shadow 0.2s;
             display: flex;
             align-items: center;
@@ -104,12 +174,12 @@
 
         .input-wrapper.listening-border {
             border-color: #00ff88;
-            box-shadow: 0 0 24px rgba(0, 255, 136, 0.7);
+            box-shadow: 0 0 22px rgba(0, 255, 136, 0.7);
         }
 
         #rapidInput { 
-            font-size: clamp(28px, 8vw, 48px);
-            height: 64px;
+            font-size: clamp(24px, 7.5vw, 46px);
+            height: clamp(50px, 7.5vh, 66px);
             width: 100%; 
             text-align: center; 
             font-weight: bold; 
@@ -121,85 +191,83 @@
             font-family: 'Courier New', Courier, monospace; 
         }
 
-        .clear-x-btn {
-            position: absolute;
-            right: 8px;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: none;
-            background: #e2e8f0;
-            color: #334155;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .clear-x-btn:active { background: #cbd5e1; }
-
-        /* แถวปุ่มควบคุมหลัก (เปิดไมค์ + คาลิเบรต) */
+        /* แถวปุ่มควบคุมหลัก: เปิดไมค์ | เคลียร์ | คาลิเบรต */
         .controls-row {
-            display: flex;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: 1.8fr 1fr 1fr;
+            gap: 8px;
             width: 100%;
         }
 
         .btn {
             border: none;
-            padding: 14px 16px;
-            font-size: 16px;
+            padding: clamp(11px, 1.8vh, 15px) 8px;
+            font-size: clamp(14px, 3.8vw, 16px);
             font-weight: bold;
             border-radius: 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
             font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
             transition: all 0.15s;
+            white-space: nowrap;
         }
 
         .mic-btn {
-            flex: 2;
             background: #e63946;
             color: #fff;
         }
         .mic-btn.active {
             background: #00c853;
-            box-shadow: 0 0 18px rgba(0, 200, 83, 0.65);
+            box-shadow: 0 0 16px rgba(0, 200, 83, 0.65);
         }
+        .clear-main-btn {
+            background: #f59e0b;
+            color: #000;
+        }
+        .clear-main-btn:active { background: #d97706; }
+
         .cal-btn {
-            flex: 1;
             background: #2b3d54;
             color: #e0e1dd;
             border: 1px solid #415a77;
         }
         .cal-btn:active { background: #415a77; }
 
-        /* แถบปุ่มสอนคำด่วน (Quick Teach) แบบกะทัดรัด */
+        /* แถบปุ่มสอนคำด่วน (ซ่อนไว้เป็นค่าเริ่มต้น เพื่อป้องกันนิ้วเผลอไปโดน) */
         .quick-teach-bar {
-            display: grid;
+            display: none;
             grid-template-columns: repeat(5, 1fr);
             gap: 6px;
             width: 100%;
+            padding-top: 2px;
+        }
+        .quick-teach-bar.show {
+            display: grid;
         }
         .teach-chip {
             background: #1b263b;
             border: 1px solid #415a77;
             color: #cbd5e1;
-            padding: 8px 4px;
+            padding: 9px 2px;
             border-radius: 8px;
             cursor: pointer;
             font-family: -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
-            font-size: 12px;
+            font-size: clamp(11px, 3vw, 13px);
             font-weight: bold;
             text-align: center;
         }
         .teach-chip:active {
             background: #00e5ff;
             color: #000;
+        }
+
+        /* ปรับย่อระยะอัตโนมัติสำหรับมือถือจอเตี้ยหรือแนวนอน */
+        @media (max-height: 680px) {
+            #previewText { font-size: clamp(32px, 11vw, 72px); }
+            .voice-status-box { min-height: 36px; padding: 6px 10px; }
         }
 
         /* Modal คาลิเบรตเสียง */
@@ -282,6 +350,9 @@
 </head>
 <body>
 
+    <!-- ประวัติ 5 ค่าล่าสุด (แตะเพื่อเรียกคืนได้) -->
+    <div id="historyBar" class="history-bar"></div>
+
     <!-- ส่วนบน: แสดงผลลัพธ์ -->
     <div class="preview-container">
         <div id="previewText"></div>
@@ -289,21 +360,27 @@
 
     <!-- ส่วนล่าง: สถานะเสียง + ช่องกรอก + ปุ่มควบคุม -->
     <div class="bottom-panel">
-        <div id="voiceStatusText" class="voice-status-box">
-            กดปุ่มเปิดไมค์เพื่อเริ่มสั่งงานด้วยเสียง
+        <div class="status-row">
+            <div class="voice-status-box">
+                <span id="voiceStatusText">กดปุ่มเปิดไมค์เพื่อเริ่มสั่งงานด้วยเสียง</span>
+                <button id="undoTeachBtn" class="undo-btn" type="button">↩️ เลิกทำ</button>
+            </div>
+            <button id="toggleTeachBarBtn" class="teach-toggle-btn" type="button" title="เปิด/ปิดปุ่มสอนคำด่วน">🎓 สอนคำ</button>
         </div>
 
         <div id="inputBoxWrapper" class="input-wrapper">
             <input type="text" id="rapidInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พูดหรือพิมพ์...">
-            <button id="clearXBtn" class="clear-x-btn" type="button" title="ล้างหน้าจอ">✕</button>
         </div>
 
+        <!-- แถวปุ่มหลัก: เปิดไมค์ | เคลียร์ | คาลิเบรต -->
         <div class="controls-row">
             <button id="micToggleBtn" class="btn mic-btn" type="button">🎤 เปิดไมค์</button>
+            <button id="clearMainBtn" class="btn clear-main-btn" type="button">🧹 เคลียร์</button>
             <button id="openCalBtn" class="btn cal-btn" type="button">⚙️ คาลิเบรต</button>
         </div>
 
-        <div class="quick-teach-bar">
+        <!-- แถบสอนคำด่วน (ซ่อนอยู่เป็นค่าเริ่มต้น กันนิ้วเผลอไปโดน) -->
+        <div id="quickTeachBar" class="quick-teach-bar">
             <button class="teach-chip" type="button" data-teach="OUT">+ OUT</button>
             <button class="teach-chip" type="button" data-teach="NS">+ N/S</button>
             <button class="teach-chip" type="button" data-teach="DRY">+ DRY</button>
@@ -434,6 +511,41 @@
 
     const rapidInput = document.getElementById('rapidInput');
     const preview = document.getElementById('previewText');
+    const historyBar = document.getElementById('historyBar');
+    let recentHistory = [];
+
+    function pushToHistory(rawCode, displayLabel) {
+        if (!rawCode || !displayLabel) return;
+        if (recentHistory.length > 0 && recentHistory[0].raw === rawCode) return;
+        recentHistory.unshift({ raw: rawCode, label: displayLabel });
+        if (recentHistory.length > 5) recentHistory.pop();
+        renderHistoryBar();
+    }
+
+    function renderHistoryBar() {
+        historyBar.innerHTML = recentHistory.map((item, idx) =>
+            `<button type="button" class="history-pill" data-idx="${idx}">${item.label}</button>`
+        ).join('');
+        historyBar.querySelectorAll('.history-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = recentHistory[parseInt(btn.dataset.idx, 10)];
+                if (item) {
+                    rapidInput.value = item.raw;
+                    processRapidInput();
+                }
+            });
+        });
+    }
+
+    function clearRapidInput() {
+        const currentRaw = rapidInput.value.trim();
+        const currentPreview = preview.textContent.trim();
+        if (currentRaw && currentPreview) {
+            pushToHistory(currentRaw, currentPreview.replace(/\s+/g, ' '));
+        }
+        rapidInput.value = '';
+        preview.innerHTML = '';
+    }
 
     function processRapidInput() {
         let raw = rapidInput.value.toUpperCase();
@@ -467,19 +579,17 @@
     rapidInput.addEventListener('input', processRapidInput);
     rapidInput.addEventListener('keydown', function(e) {
         if(e.key === 'Enter') {
-            this.value = '';
-            preview.innerHTML = '';
+            clearRapidInput();
         }
     });
 
-    document.getElementById('clearXBtn').addEventListener('click', () => {
-        rapidInput.value = '';
-        preview.innerHTML = '';
-        rapidInput.focus();
+    document.getElementById('clearMainBtn').addEventListener('click', () => {
+        clearRapidInput();
+        setStatusMessage('ล้างช่องกรอกแล้ว');
     });
 
     // ==========================================
-    // 2. คลังคำศัพท์คาลิเบรตเสียง (คัดกรองให้แม่นยำ ไม่ทับซ้อนกัน)
+    // 2. คลังคำศัพท์คาลิเบรตเสียง + ระบบล้างคำที่จำผิดอัตโนมัติ
     // ==========================================
     const defaultVoiceDict = {
         CLEAR: ["เคลียร์", "เคียร์", "คลียร์", "เขี่ย", "เชียร์", "clear", "ลบ", "ล้าง"],
@@ -505,6 +615,18 @@
         { key: 'CLEAR', title: 'เคลียร์ (ล้างจอ)' }
     ];
 
+    // กรองคำที่มีตัวเลขปะปน (เช่น "30ที่7") ออกจากการจำผิดโดยอัตโนมัติ
+    function sanitizeDict(dictObj) {
+        const cleaned = {};
+        for (let k in defaultVoiceDict) {
+            const list = Array.isArray(dictObj[k]) ? dictObj[k] : defaultVoiceDict[k];
+            cleaned[k] = Array.from(new Set(
+                list.map(w => w.trim()).filter(w => w && !/\d/.test(w))
+            ));
+        }
+        return cleaned;
+    }
+
     function loadVoiceDict() {
         try {
             const saved = localStorage.getItem('chandy_voice_dict_v4');
@@ -514,7 +636,9 @@
                 for (let k in defaultVoiceDict) {
                     merged[k] = Array.from(new Set([...(parsed[k] || []), ...defaultVoiceDict[k]]));
                 }
-                return merged;
+                const clean = sanitizeDict(merged);
+                localStorage.setItem('chandy_voice_dict_v4', JSON.stringify(clean));
+                return clean;
             }
         } catch(e) {}
         return JSON.parse(JSON.stringify(defaultVoiceDict));
@@ -567,21 +691,17 @@
     }
 
     // ==========================================
-    // 4. ตัวแปลคำสั่งเสียง (แก้บั๊ก 120 ทิศ 7 -> 120/7 สมบูรณ์)
+    // 4. ตัวแปลคำสั่งเสียง
     // ==========================================
     function parseVoiceToChandyCode(transcript) {
         let s = transcript.trim().toLowerCase();
         let compact = s.replace(/\s+/g, '');
 
-        // 1. ตรวจจับ "เคลียร์"
         if (new RegExp(buildRegexFromList(voiceDict.CLEAR), 'i').test(compact)) {
             return { isClear: true, code: '' };
         }
 
-        // 2. แปลง "โนสะปาร์ค" -> N/S
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.NS), 'gi'), ' N/S ');
-
-        // 3. แปลงตัวเลขไทยเป็นอารบิก
         s = convertAllThaiNumbers(s);
 
         const dirWords = buildRegexFromList(voiceDict.DIR);
@@ -589,25 +709,15 @@
         const leftWords = buildRegexFromList(voiceDict.LEFT);
         const rightWords = buildRegexFromList(voiceDict.RIGHT);
 
-        // 4. [สำคัญสุด] แปลง "[ระยะ] ทิศ [1-12]" เช่น "120 ทิศ 7" -> "120/7" ก่อนกฎ OUT
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${dirWords}|\\/)\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi'), ' $1/$2 ');
-
-        // 5. แปลง "เอาท์ทิศ [1-12]" -> 99xx (ต้องขึ้นต้นด้วยคำกลุ่ม OUT จริงๆ)
         s = s.replace(new RegExp(`(?:^|\\s)(?:${outWords})\\s*(?:${dirWords})?\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi'), ' 99$1 ');
-
-        // 6. กรณีพูดเว้นจังหวะ: ก้อนนี้มีแค่ "ทิศ 7" -> แปลงเป็น "/7" เพื่อไปเชื่อมกับเลขระยะเดิม (เช่น 120 + /7 = 120/7)
         s = s.replace(new RegExp(`(?:^|\\s)(?:${dirWords})\\s*(1[0-2]|[1-9])(?!\\d)`, 'gi'), ' /$1 ');
-
-        // 7. แปลงซ้าย / ขวา
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${leftWords})`, 'gi'), ' $1L ');
         s = s.replace(new RegExp(`(\\d+)\\s*(?:${rightWords})`, 'gi'), ' $1R ');
-
-        // 8. แปลงสถานะ HIT, D, |
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.HIT), 'gi'), ' HIT ');
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.DRY), 'gi'), ' D ');
         s = s.replace(new RegExp(buildRegexFromList(voiceDict.PIPE), 'gi'), ' | ');
 
-        // 9. ดึง Token และใช้กฎ Step 5/10 แก้คำเพี้ยน
         let rawTokens = s.match(/(99(?:1[0-2]|[1-9])|OUT\/\d+|HIT|N\/S|D|\||\d+\/\d+|\/\d+|\d+[LR]|\d+)/gi) || [];
 
         if (rawTokens.length === 1 && /^\d+$/.test(rawTokens[0])) {
@@ -623,7 +733,6 @@
         let processedTokens = [];
         for (let i = 0; i < rawTokens.length; i++) {
             let tk = rawTokens[i].toUpperCase();
-
             if (/^\d+$/.test(tk)) {
                 let num = parseInt(tk, 10);
                 if (num >= 13 && num <= 94 && (num % 10 === 3 || num % 10 === 4)) {
@@ -680,13 +789,11 @@
 
     function cleanCalibratedWord(rawWord, key) {
         let w = convertAllThaiNumbers(rawWord).trim().toLowerCase();
-        if (key === 'OUT' || key === 'DIR' || key === 'LEFT' || key === 'RIGHT') {
-            w = w.replace(/\d+/g, '').trim();
-        }
+        // ลบตัวเลขออกเสมอสำหรับคำคาลิเบรต เพื่อป้องกันการจำคำที่มีตัวเลขผิดพลาด
+        w = w.replace(/\d+/g, '').trim();
         return w.replace(/\s+/g, '');
     }
 
-    // เชื่อมคำเข้าช่อง rapidInput อย่างฉลาด (เช่น ค่าเดิมคือ "120" แล้วก้อนใหม่มาเป็น "/7" -> "120/7")
     function appendCodeToInput(newCode) {
         let current = rapidInput.value.trim();
         if (newCode.startsWith('/') && /\d+$/.test(current)) {
@@ -698,18 +805,62 @@
     }
 
     // ==========================================
-    // 5. ระบบควบคุมไมโครโฟน (Web Speech API)
+    // 5. Screen Wake Lock (กันหน้าจอมือถือดับตอนเปิดไมค์)
+    // ==========================================
+    let wakeLock = null;
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+            }
+        } catch (e) {}
+    }
+    async function releaseWakeLock() {
+        try {
+            if (wakeLock) {
+                await wakeLock.release();
+                wakeLock = null;
+            }
+        } catch (e) {}
+    }
+
+    // ==========================================
+    // 6. ระบบควบคุมไมโครโฟน + Quick Teach พร้อม Undo
     // ==========================================
     const micToggleBtn = document.getElementById('micToggleBtn');
     const voiceStatusText = document.getElementById('voiceStatusText');
+    const undoTeachBtn = document.getElementById('undoTeachBtn');
     const inputBoxWrapper = document.getElementById('inputBoxWrapper');
+    const quickTeachBar = document.getElementById('quickTeachBar');
+    const toggleTeachBarBtn = document.getElementById('toggleTeachBarBtn');
+
+    let lastTaughtRecord = null;
+
+    function setStatusMessage(msg, showUndo = false) {
+        voiceStatusText.textContent = msg;
+        undoTeachBtn.style.display = showUndo ? 'inline-block' : 'none';
+    }
+
+    toggleTeachBarBtn.addEventListener('click', () => {
+        const isOpen = quickTeachBar.classList.toggle('show');
+        toggleTeachBarBtn.classList.toggle('open', isOpen);
+    });
+
+    undoTeachBtn.addEventListener('click', () => {
+        if (!lastTaughtRecord) return;
+        const { key, word } = lastTaughtRecord;
+        voiceDict[key] = voiceDict[key].filter(w => w !== word);
+        localStorage.setItem('chandy_voice_dict_v4', JSON.stringify(voiceDict));
+        setStatusMessage(`↩️ ยกเลิกการจำ "${word}" แล้ว`, false);
+        lastTaughtRecord = null;
+    });
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     let calibratingTargetKey = null;
     let lastHeardRawText = '';
 
     if (!SpeechRecognition) {
-        voiceStatusText.textContent = "เบราว์เซอร์นี้ไม่รองรับการสั่งงานด้วยเสียง";
+        setStatusMessage("เบราว์เซอร์นี้ไม่รองรับการสั่งงานด้วยเสียง");
         micToggleBtn.disabled = true;
     } else {
         const recognition = new SpeechRecognition();
@@ -742,9 +893,10 @@
         recognition.onstart = () => {
             isListening = true;
             micToggleBtn.classList.add('active');
-            micToggleBtn.textContent = '🟢 กำลังฟังเสียง';
+            micToggleBtn.textContent = '🟢 กำลังฟัง';
             inputBoxWrapper.classList.add('listening-border');
-            voiceStatusText.textContent = 'กำลังฟัง... พูดคำสั่งได้เลย';
+            setStatusMessage('กำลังฟัง... พูดคำสั่งได้เลย');
+            requestWakeLock();
         };
 
         recognition.onresult = (event) => {
@@ -763,7 +915,9 @@
 
                 if (calibratingTargetKey) {
                     const cleaned = cleanCalibratedWord(primaryTranscript, calibratingTargetKey);
-                    addCalibratedWordToInput(calibratingTargetKey, cleaned || primaryTranscript.replace(/\s+/g, ''));
+                    if (cleaned) {
+                        addCalibratedWordToInput(calibratingTargetKey, cleaned);
+                    }
                     calibratingTargetKey = null;
                     updateCalButtonsUI();
                     continue;
@@ -787,19 +941,18 @@
                 }
 
                 if (bestResult && bestResult.isClear) {
-                    rapidInput.value = '';
-                    processRapidInput();
-                    voiceStatusText.textContent = `ล้างหน้าจอ ("${chosenTranscript}")`;
+                    clearRapidInput();
+                    setStatusMessage(`ล้างหน้าจอ ("${chosenTranscript}")`);
                 } else if (bestResult && bestResult.code) {
                     appendCodeToInput(bestResult.code);
-                    voiceStatusText.textContent = `"${chosenTranscript}" ➔ [${bestResult.code}]`;
+                    setStatusMessage(`"${chosenTranscript}" ➔ [${bestResult.code}]`);
                 } else {
-                    voiceStatusText.textContent = `ได้ยิน: "${primaryTranscript}"`;
+                    setStatusMessage(`ได้ยิน: "${primaryTranscript}"`);
                 }
             }
 
             if (interimTranscript && !calibratingTargetKey) {
-                voiceStatusText.textContent = `กำลังฟัง: "${interimTranscript}"`;
+                setStatusMessage(`กำลังฟัง: "${interimTranscript}"`);
             }
         };
 
@@ -811,37 +964,47 @@
                 micToggleBtn.classList.remove('active');
                 micToggleBtn.textContent = '🎤 เปิดไมค์';
                 inputBoxWrapper.classList.remove('listening-border');
-                voiceStatusText.textContent = 'ปิดไมโครโฟนแล้ว';
+                setStatusMessage('ปิดไมโครโฟนแล้ว');
+                releaseWakeLock();
             }
         };
 
         recognition.onerror = (event) => {
             if (event.error !== 'no-speech' && event.error !== 'aborted') {
-                voiceStatusText.textContent = `ข้อผิดพลาดไมโครโฟน: ${event.error}`;
+                setStatusMessage(`ข้อผิดพลาดไมโครโฟน: ${event.error}`);
             }
         };
 
-        // ปุ่ม Quick Teach ด้านล่าง
+        // ปุ่ม Quick Teach (มี Guardrail ป้องกันจำคำที่มีตัวเลข + มีปุ่ม Undo)
         document.querySelectorAll('.teach-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const targetKey = chip.getAttribute('data-teach');
                 if (!lastHeardRawText) {
-                    voiceStatusText.textContent = 'ลองพูดคำที่ต้องการสอนก่อน 1 ครั้ง แล้วค่อยกดปุ่มนี้';
+                    setStatusMessage('ลองพูดคำที่ต้องการสอนก่อน 1 ครั้ง แล้วค่อยกดปุ่มนี้');
+                    return;
+                }
+                if (targetKey !== 'OUT' && /\d/.test(convertAllThaiNumbers(lastHeardRawText))) {
+                    setStatusMessage(`⚠️ ไม่อนุญาตให้จำ "${lastHeardRawText}" เป็น [${targetKey}] เพราะมีตัวเลข`);
                     return;
                 }
                 const cleaned = cleanCalibratedWord(lastHeardRawText, targetKey);
-                if (!cleaned) return;
-
+                if (!cleaned) {
+                    setStatusMessage('⚠️ ไม่พบคำภาษาพูดสำหรับบันทึก');
+                    return;
+                }
                 if (!voiceDict[targetKey].includes(cleaned)) {
                     voiceDict[targetKey].unshift(cleaned);
                     localStorage.setItem('chandy_voice_dict_v4', JSON.stringify(voiceDict));
+                    lastTaughtRecord = { key: targetKey, word: cleaned };
+                    setStatusMessage(`✅ จำ "${cleaned}" เป็น [${targetKey}]`, true);
+                } else {
+                    setStatusMessage(`มีคำว่า "${cleaned}" ใน [${targetKey}] อยู่แล้ว`);
                 }
-                voiceStatusText.textContent = `✅ จำคำว่า "${cleaned}" เป็น [${targetKey}] แล้ว`;
             });
         });
 
         // ==========================================
-        // 6. หน้าต่าง Modal คาลิเบรตเสียง
+        // 7. หน้าต่าง Modal คาลิเบรตเสียง
         // ==========================================
         const calModal = document.getElementById('calModal');
         const calRowsContainer = document.getElementById('calRowsContainer');
@@ -908,16 +1071,18 @@
         });
 
         document.getElementById('saveCalBtn').addEventListener('click', () => {
+            const updated = {};
             calConfigMeta.forEach(item => {
                 const inputEl = document.getElementById(`cal_in_${item.key}`);
                 if (inputEl) {
-                    voiceDict[item.key] = inputEl.value.split(',').map(s => s.trim()).filter(Boolean);
+                    updated[item.key] = inputEl.value.split(',').map(s => s.trim()).filter(Boolean);
                 }
             });
+            voiceDict = sanitizeDict(updated);
             localStorage.setItem('chandy_voice_dict_v4', JSON.stringify(voiceDict));
             calibratingTargetKey = null;
             calModal.classList.remove('show');
-            voiceStatusText.textContent = '✅ บันทึกค่าคาลิเบรตเรียบร้อยแล้ว';
+            setStatusMessage('✅ บันทึกค่าคาลิเบรตเรียบร้อยแล้ว');
         });
 
         document.getElementById('resetCalBtn').addEventListener('click', () => {
