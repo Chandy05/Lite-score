@@ -29,7 +29,7 @@
             overscroll-behavior-y: none;
         }
 
-        /* แถบประวัติย้อนหลังแบบบาง (ด้านบนสุด) */
+        /* แถบประวัติย้อนหลัง (แสดงเป็น 5L 10R = 35/1 หรือคั่นด้วย , เมื่อมีหลายลูก) */
         .history-bar {
             width: 100%;
             max-width: 640px;
@@ -37,30 +37,36 @@
             display: flex;
             gap: 6px;
             overflow-x: auto;
-            min-height: 28px;
+            min-height: 32px;
             padding: 2px 0;
             scrollbar-width: none;
-            justify-content: center;
+            align-items: center;
         }
         .history-bar::-webkit-scrollbar { display: none; }
         .history-pill {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(144, 224, 239, 0.25);
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(144, 224, 239, 0.3);
             color: #90e0ef;
             font-family: 'Courier New', Courier, monospace;
             font-size: 13px;
             font-weight: bold;
-            padding: 3px 10px;
+            padding: 5px 12px;
             border-radius: 999px;
             white-space: nowrap;
             cursor: pointer;
+            flex-shrink: 0;
+        }
+        .history-pill:first-child {
+            background: rgba(0, 229, 255, 0.18);
+            border-color: #00e5ff;
+            color: #ffffff;
         }
         .history-pill:active {
             background: #00e5ff;
             color: #000;
         }
         
-        /* ส่วนบน: แสดงผลลัพธ์ขนาดใหญ่ ยืดหยุ่นตามขนาดจอ */
+        /* ส่วนบน: แสดงผลลัพธ์ขนาดใหญ่ */
         .preview-container {
             flex: 1;
             width: 100%;
@@ -89,7 +95,7 @@
         .color-miss { color: #ff3333; text-shadow: 0 0 28px rgba(255,51,51,0.85); }
         .color-score { color: #00e5ff; text-shadow: 0 0 28px rgba(0, 229, 255, 0.85); }
 
-        /* ส่วนควบคุมด้านล่าง (รองรับตั้งแต่ iPhone SE, Android จอเล็ก ไปจนถึง 12 Pro Max และ PC) */
+        /* ส่วนควบคุมด้านล่าง */
         .bottom-panel {
             width: 100%;
             max-width: 640px;
@@ -158,7 +164,7 @@
             border-color: #00e5ff;
         }
 
-        /* กล่องกรอกรหัส */
+        /* กล่องกรอกรหัส + แถบนับถอยหลัง 5 วินาที */
         .input-wrapper { 
             position: relative;
             background: #fff; 
@@ -170,11 +176,22 @@
             transition: border-color 0.2s, box-shadow 0.2s;
             display: flex;
             align-items: center;
+            overflow: hidden;
         }
 
         .input-wrapper.listening-border {
             border-color: #00ff88;
             box-shadow: 0 0 22px rgba(0, 255, 136, 0.7);
+        }
+
+        .auto-clear-bar {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: 4px;
+            width: 0%;
+            background: #f59e0b;
+            pointer-events: none;
         }
 
         #rapidInput { 
@@ -236,7 +253,7 @@
         }
         .cal-btn:active { background: #415a77; }
 
-        /* แถบปุ่มสอนคำด่วน (ซ่อนไว้เป็นค่าเริ่มต้น เพื่อป้องกันนิ้วเผลอไปโดน) */
+        /* แถบปุ่มสอนคำด่วน (ซ่อนไว้เป็นค่าเริ่มต้น) */
         .quick-teach-bar {
             display: none;
             grid-template-columns: repeat(5, 1fr);
@@ -264,7 +281,6 @@
             color: #000;
         }
 
-        /* ปรับย่อระยะอัตโนมัติสำหรับมือถือจอเตี้ยหรือแนวนอน */
         @media (max-height: 680px) {
             #previewText { font-size: clamp(32px, 11vw, 72px); }
             .voice-status-box { min-height: 36px; padding: 6px 10px; }
@@ -350,7 +366,7 @@
 </head>
 <body>
 
-    <!-- ประวัติ 5 ค่าล่าสุด (แตะเพื่อเรียกคืนได้) -->
+    <!-- ประวัติล่าสุด (แสดงเป็น 5L 10R = 35/1 หรือคั่นด้วย , เมื่อมีหลายลูก) -->
     <div id="historyBar" class="history-bar"></div>
 
     <!-- ส่วนบน: แสดงผลลัพธ์ -->
@@ -370,6 +386,7 @@
 
         <div id="inputBoxWrapper" class="input-wrapper">
             <input type="text" id="rapidInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="พูดหรือพิมพ์...">
+            <div id="autoClearBar" class="auto-clear-bar"></div>
         </div>
 
         <!-- แถวปุ่มหลัก: เปิดไมค์ | เคลียร์ | คาลิเบรต -->
@@ -379,7 +396,7 @@
             <button id="openCalBtn" class="btn cal-btn" type="button">⚙️ คาลิเบรต</button>
         </div>
 
-        <!-- แถบสอนคำด่วน (ซ่อนอยู่เป็นค่าเริ่มต้น กันนิ้วเผลอไปโดน) -->
+        <!-- แถบสอนคำด่วน (ซ่อนอยู่เป็นค่าเริ่มต้น) -->
         <div id="quickTeachBar" class="quick-teach-bar">
             <button class="teach-chip" type="button" data-teach="OUT">+ OUT</button>
             <button class="teach-chip" type="button" data-teach="NS">+ N/S</button>
@@ -512,13 +529,44 @@
     const rapidInput = document.getElementById('rapidInput');
     const preview = document.getElementById('previewText');
     const historyBar = document.getElementById('historyBar');
-    let recentHistory = [];
+    const autoClearBar = document.getElementById('autoClearBar');
 
-    function pushToHistory(rawCode, displayLabel) {
-        if (!rawCode || !displayLabel) return;
-        if (recentHistory.length > 0 && recentHistory[0].raw === rawCode) return;
-        recentHistory.unshift({ raw: rawCode, label: displayLabel });
-        if (recentHistory.length > 5) recentHistory.pop();
+    const AUTO_CLEAR_MS = 5000; // เคลียร์ช่อง rapidInput อัตโนมัติเมื่อผ่านไป 5 วินาที
+    let autoClearTimer = null;
+    let recentHistory = [];
+    let currentParsedList = [];
+
+    function cancelAutoClearTimer() {
+        if (autoClearTimer) {
+            clearTimeout(autoClearTimer);
+            autoClearTimer = null;
+        }
+        autoClearBar.style.transition = 'none';
+        autoClearBar.style.width = '0%';
+    }
+
+    function resetAutoClearTimer() {
+        cancelAutoClearTimer();
+        if (!rapidInput.value.trim()) return;
+
+        // แสดงแถบนับถอยหลัง 5 วินาทีใต้ช่องกรอก
+        autoClearBar.style.width = '100%';
+        void autoClearBar.offsetWidth; // force reflow
+        autoClearBar.style.transition = `width ${AUTO_CLEAR_MS}ms linear`;
+        autoClearBar.style.width = '0%';
+
+        autoClearTimer = setTimeout(() => {
+            clearRapidInput(true);
+        }, AUTO_CLEAR_MS);
+    }
+
+    function pushToHistory(rawCode, parsedArray) {
+        if (!rawCode || !parsedArray || parsedArray.length === 0) return;
+        const resultStr = parsedArray.join(', ');
+        const fullLabel = `${rawCode} = ${resultStr}`;
+        if (recentHistory.length > 0 && recentHistory[0].label === fullLabel) return;
+        recentHistory.unshift({ raw: rawCode, label: fullLabel });
+        if (recentHistory.length > 8) recentHistory.pop();
         renderHistoryBar();
     }
 
@@ -537,14 +585,18 @@
         });
     }
 
-    function clearRapidInput() {
+    function clearRapidInput(isAuto = false) {
+        cancelAutoClearTimer();
         const currentRaw = rapidInput.value.trim();
-        const currentPreview = preview.textContent.trim();
-        if (currentRaw && currentPreview) {
-            pushToHistory(currentRaw, currentPreview.replace(/\s+/g, ' '));
+        if (currentRaw && currentParsedList.length > 0) {
+            pushToHistory(currentRaw, currentParsedList);
         }
         rapidInput.value = '';
         preview.innerHTML = '';
+        currentParsedList = [];
+        if (isAuto) {
+            setStatusMessage('เคลียร์ช่องอัตโนมัติ (ครบ 5 วินาที)');
+        }
     }
 
     function processRapidInput() {
@@ -559,11 +611,14 @@
 
         if(!rV.trim()){ 
             preview.innerHTML = ''; 
+            currentParsedList = [];
+            cancelAutoClearTimer();
             return; 
         }
 
         let R = parseInputString(rV);
         if (R.parsedDrops.length > 0) {
+            currentParsedList = R.parsedDrops.map(x => x.parsed);
             preview.innerHTML = R.parsedDrops.map(x => {
                 let p = x.parsed;
                 if(p.includes('HIT')) return '<div class="color-hit">HIT</div>';
@@ -573,18 +628,22 @@
             }).join('');
         } else {
             preview.innerHTML = '';
+            currentParsedList = [];
         }
+
+        // เริ่มนับถอยหลัง 5 วินาทีใหม่ทุกครั้งที่มีการอัปเดตค่า
+        resetAutoClearTimer();
     }
 
     rapidInput.addEventListener('input', processRapidInput);
     rapidInput.addEventListener('keydown', function(e) {
         if(e.key === 'Enter') {
-            clearRapidInput();
+            clearRapidInput(false);
         }
     });
 
     document.getElementById('clearMainBtn').addEventListener('click', () => {
-        clearRapidInput();
+        clearRapidInput(false);
         setStatusMessage('ล้างช่องกรอกแล้ว');
     });
 
@@ -615,7 +674,6 @@
         { key: 'CLEAR', title: 'เคลียร์ (ล้างจอ)' }
     ];
 
-    // กรองคำที่มีตัวเลขปะปน (เช่น "30ที่7") ออกจากการจำผิดโดยอัตโนมัติ
     function sanitizeDict(dictObj) {
         const cleaned = {};
         for (let k in defaultVoiceDict) {
@@ -787,9 +845,8 @@
         return null;
     }
 
-    function cleanCalibratedWord(rawWord, key) {
+    function cleanCalibratedWord(rawWord) {
         let w = convertAllThaiNumbers(rawWord).trim().toLowerCase();
-        // ลบตัวเลขออกเสมอสำหรับคำคาลิเบรต เพื่อป้องกันการจำคำที่มีตัวเลขผิดพลาด
         w = w.replace(/\d+/g, '').trim();
         return w.replace(/\s+/g, '');
     }
@@ -914,7 +971,7 @@
                 lastHeardRawText = primaryTranscript;
 
                 if (calibratingTargetKey) {
-                    const cleaned = cleanCalibratedWord(primaryTranscript, calibratingTargetKey);
+                    const cleaned = cleanCalibratedWord(primaryTranscript);
                     if (cleaned) {
                         addCalibratedWordToInput(calibratingTargetKey, cleaned);
                     }
@@ -941,7 +998,7 @@
                 }
 
                 if (bestResult && bestResult.isClear) {
-                    clearRapidInput();
+                    clearRapidInput(false);
                     setStatusMessage(`ล้างหน้าจอ ("${chosenTranscript}")`);
                 } else if (bestResult && bestResult.code) {
                     appendCodeToInput(bestResult.code);
@@ -975,7 +1032,6 @@
             }
         };
 
-        // ปุ่ม Quick Teach (มี Guardrail ป้องกันจำคำที่มีตัวเลข + มีปุ่ม Undo)
         document.querySelectorAll('.teach-chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const targetKey = chip.getAttribute('data-teach');
@@ -987,7 +1043,7 @@
                     setStatusMessage(`⚠️ ไม่อนุญาตให้จำ "${lastHeardRawText}" เป็น [${targetKey}] เพราะมีตัวเลข`);
                     return;
                 }
-                const cleaned = cleanCalibratedWord(lastHeardRawText, targetKey);
+                const cleaned = cleanCalibratedWord(lastHeardRawText);
                 if (!cleaned) {
                     setStatusMessage('⚠️ ไม่พบคำภาษาพูดสำหรับบันทึก');
                     return;
